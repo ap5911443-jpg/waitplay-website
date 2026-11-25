@@ -259,6 +259,25 @@ impl Glass {
     }
 }
 
+/// Liquid glass behind a whole window: an `NSVisualEffectView` (real behind-window blur and vibrancy, follows light/dark, Reduce
+/// Transparency and Increase Contrast by itself) filling the content view under the transparent header page; the opaque site view
+/// covers the middle. The window itself must be non-opaque (tao's `with_transparent`). Main thread only.
+pub fn fill_with_glass(content_view: *mut std::ffi::c_void) {
+    use objc2_app_kit::{NSAutoresizingMaskOptions, NSVisualEffectBlendingMode, NSVisualEffectMaterial, NSVisualEffectState, NSVisualEffectView, NSView, NSWindowOrderingMode};
+    let Some(mtm) = MainThreadMarker::new() else { return };
+    if content_view.is_null() {
+        return;
+    }
+    // SAFETY: tao hands out the window's live content view
+    let content: &NSView = unsafe { &*(content_view as *const NSView) };
+    let fx = NSVisualEffectView::initWithFrame(mtm.alloc(), content.bounds());
+    fx.setMaterial(NSVisualEffectMaterial::Popover);
+    fx.setBlendingMode(NSVisualEffectBlendingMode::BehindWindow);
+    fx.setState(NSVisualEffectState::Active);
+    fx.setAutoresizingMask(NSAutoresizingMaskOptions::ViewWidthSizable | NSAutoresizingMaskOptions::ViewHeightSizable);
+    content.addSubview_positioned_relativeTo(&fx, NSWindowOrderingMode::Below, None);
+}
+
 /// Sets an `NSWindow`'s level (tao's always-on-top is the floating level; the widget sits above it so its expanded panel is never
 /// covered by the entertainment window).
 pub fn set_window_level(ns_window: *mut std::ffi::c_void, level: isize) {

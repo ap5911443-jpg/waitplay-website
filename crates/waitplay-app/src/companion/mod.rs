@@ -36,12 +36,11 @@ pub struct Options {
 }
 
 const HEADER_HEIGHT_DIP: f64 = 44.0;
-/// Windows draws no frame, so the site sits inside a thin border that keeps the resize edges; the macOS title bar needs none.
-const BORDER_DIP: f64 = if cfg!(target_os = "macos") { 0.0 } else { 5.0 };
-#[cfg(target_os = "macos")]
+/// Windows draws no frame, so the site sits inside a thin border that keeps the resize edges (and shows the glass around the
+/// site); the macOS title bar needs none.
+const BORDER_DIP: f64 = if cfg!(target_os = "macos") { 0.0 } else { 6.0 };
+/// The header page paints on glass (acrylic on Windows, the window's visual-effect view on macOS), so its own background is clear.
 const HEADER_BG: (u8, u8, u8, u8) = (0, 0, 0, 0);
-#[cfg(not(target_os = "macos"))]
-const HEADER_BG: (u8, u8, u8, u8) = (13, 13, 15, 255);
 const MIN_WIDTH_DIP: f64 = 360.0;
 const MIN_HEIGHT_DIP: f64 = 320.0;
 const ACTIVE_TICK: Duration = Duration::from_millis(100);
@@ -648,20 +647,26 @@ pub fn run(opts: Options, _guard: Guard) -> Result<(), String> {
         let b = WindowBuilder::new().with_title("WaitPlay").with_resizable(true).with_always_on_top(true).with_visible(false);
         // Windows draws its own caption in the header page; macOS keeps the native title bar and traffic lights
         #[cfg(not(target_os = "macos"))]
-        let b = b.with_decorations(false).with_background_color((13, 13, 15, 255));
+        // black GDI pixels are what a transparent window shows through as glass, so the bare window (the frame around the site) is black
+        let b = b.with_decorations(false).with_transparent(true).with_background_color((0, 0, 0, 255));
         #[cfg(windows)]
         let b = {
             use tao::platform::windows::WindowBuilderExtWindows;
             b.with_undecorated_shadow(true)
         };
         #[cfg(target_os = "macos")]
-        let b = b.with_visible_on_all_workspaces(true).with_theme(match user_settings.appearance {
+        let b = b.with_transparent(true).with_visible_on_all_workspaces(true).with_theme(match user_settings.appearance {
             waitplay_core::settings::Appearance::System => None,
             waitplay_core::settings::Appearance::Light => Some(tao::window::Theme::Light),
             waitplay_core::settings::Appearance::Dark => Some(tao::window::Theme::Dark),
         });
         b.build(&event_loop).map_err(|e| e.to_string())?
     };
+    #[cfg(target_os = "macos")]
+    {
+        use tao::platform::macos::WindowExtMacOS;
+        platform::fill_with_glass(window.ns_view());
+    }
     let scale = window.scale_factor();
     window.set_min_inner_size(Some(PhysicalSize::new((MIN_WIDTH_DIP * scale) as u32, (MIN_HEIGHT_DIP * scale) as u32)));
     #[cfg(target_os = "macos")]
@@ -687,7 +692,10 @@ pub fn run(opts: Options, _guard: Guard) -> Result<(), String> {
     let mut context = WebContext::new(Some(profile::resolve()));
 
     let ipc_proxy = proxy.clone();
-    let header = webview2::tune(WebViewBuilder::new_with_web_context(&mut context))
+    let header = webview2::tune(WebViewBuilder::new_with_web_context(&mut context));
+    #[cfg(windows)]
+    let header = header.with_transparent(true);
+    let header = header
         .with_html(header_html())
         .with_bounds(rect(l.header))
         .with_background_color(HEADER_BG)
@@ -785,6 +793,11 @@ pub fn run(opts: Options, _guard: Guard) -> Result<(), String> {
     }
 
     app.window.set_visible(true);
+    #[cfg(windows)]
+    {
+        use tao::platform::windows::WindowExtWindows;
+        crate::win::native::window_glass(app.window.hwnd());
+    }
     app.window.set_always_on_top(true);
     app.on_became_visible();
 

@@ -11,7 +11,7 @@ use windows::Win32::Graphics::Dwm::{
     DwmEnableBlurBehindWindow, DwmSetWindowAttribute, DWMWA_BORDER_COLOR, DWMWA_CAPTION_COLOR, DWMWA_TEXT_COLOR, DWMWA_WINDOW_CORNER_PREFERENCE,
     DWMWCP_DONOTROUND, DWM_BB_BLURREGION, DWM_BB_ENABLE, DWM_BLURBEHIND,
 };
-use windows::Win32::Graphics::Gdi::{CreateRoundRectRgn, DeleteObject, HGDIOBJ};
+use windows::Win32::Graphics::Gdi::{CreateRectRgn, CreateRoundRectRgn, DeleteObject, HGDIOBJ};
 use windows::Win32::System::JobObjects::{
     AssignProcessToJobObject, CreateJobObjectW, JobObjectExtendedLimitInformation, SetInformationJobObject, JOBOBJECT_EXTENDED_LIMIT_INFORMATION,
     JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE,
@@ -25,10 +25,25 @@ fn hwnd_of(raw: isize) -> HWND {
 
 // ── glass ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
+/// The real behind-window blur of the whole entertainment window (header strip and the frame around the site; the site covers the
+/// middle): DWM blur-behind over a region larger than any window (a blur without a region is only transparent, not blurred). Black
+/// GDI pixels of the window show the blur through, which is why the companion paints its bare window black. Unlike the Windows 11
+/// backdrop materials this keeps working while the window is inactive; Windows turns it off with "Transparency effects".
+pub fn window_glass(hwnd: isize) {
+    // SAFETY: the region is created here, copied by DWM during the call and deleted right after
+    unsafe {
+        let rgn = CreateRectRgn(0, 0, 16384, 16384);
+        let bb = DWM_BLURBEHIND { dwFlags: DWM_BB_ENABLE | DWM_BB_BLURREGION, fEnable: BOOL(1), hRgnBlur: rgn, fTransitionOnMaximized: BOOL(0) };
+        let _ = DwmEnableBlurBehindWindow(hwnd_of(hwnd), &bb);
+        let _ = DeleteObject(HGDIOBJ(rgn.0));
+    }
+}
+
 /// The real behind-window blur under the widget: DWM blur-behind on the (transparent) widget window, limited to a rounded rectangle
 /// that follows the page's pill. Everything outside the rectangle stays fully transparent, so the page's own shadow and the pill's
-/// antialiased edge look the same as on any wallpaper. Windows decides the material (and switches it off with "Transparency
-/// effects" and in battery saver), the page's tint keeps the text readable either way.
+/// antialiased edge look the same as on any wallpaper (a window region or the acrylic accent would clip or fill the whole window
+/// rectangle on Windows 11). Windows decides the material (and switches it off with "Transparency effects" and in battery saver),
+/// the page's tint keeps the text readable either way.
 pub struct Glass {
     hwnd: HWND,
     last: Option<(i32, i32, i32, i32, i32)>,
