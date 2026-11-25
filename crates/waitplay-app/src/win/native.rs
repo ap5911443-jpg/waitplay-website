@@ -1,4 +1,4 @@
-//! The Win32 pieces of the tray app that have no cross-platform counterpart: the glass behind the widget, the settings window's
+//! The Win32 pieces of the tray app that have no cross-platform counterpart: the glass of the entertainment window, the notch's shape, the settings window's
 //! frame colours, opening the few whitelisted system pages, revealing the log file, and the job object that ends the helper
 //! processes with the app.
 
@@ -11,7 +11,7 @@ use windows::Win32::Graphics::Dwm::{
     DwmEnableBlurBehindWindow, DwmSetWindowAttribute, DWMWA_BORDER_COLOR, DWMWA_CAPTION_COLOR, DWMWA_TEXT_COLOR, DWMWA_WINDOW_CORNER_PREFERENCE,
     DWMWCP_DONOTROUND, DWM_BB_BLURREGION, DWM_BB_ENABLE, DWM_BLURBEHIND,
 };
-use windows::Win32::Graphics::Gdi::{CreateRectRgn, CreateRoundRectRgn, DeleteObject, HGDIOBJ};
+use windows::Win32::Graphics::Gdi::{CreateRectRgn, CreateRoundRectRgn, DeleteObject, SetWindowRgn, HGDIOBJ};
 use windows::Win32::System::JobObjects::{
     AssignProcessToJobObject, CreateJobObjectW, JobObjectExtendedLimitInformation, SetInformationJobObject, JOBOBJECT_EXTENDED_LIMIT_INFORMATION,
     JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE,
@@ -39,18 +39,17 @@ pub fn window_glass(hwnd: isize) {
     }
 }
 
-/// The real behind-window blur under the widget: DWM blur-behind on the (transparent) widget window, limited to a rounded rectangle
-/// that follows the page's pill. Everything outside the rectangle stays fully transparent, so the page's own shadow and the pill's
-/// antialiased edge look the same as on any wallpaper (a window region or the acrylic accent would clip or fill the whole window
-/// rectangle on Windows 11). Windows decides the material (and switches it off with "Transparency effects" and in battery saver),
-/// the page's tint keeps the text readable either way.
-pub struct Glass {
+/// The window shape of the notch. The page draws an opaque black pill on a transparent window; this clips the window itself to
+/// that pill (a hair larger, so the page's antialiased edge is never cut) which is what makes everything around the pill
+/// click-through: a browser tab or a button under the empty corners of the widget window still gets the mouse. The page reports
+/// its live rectangle every frame while it grows or shrinks, so the clip follows the animation.
+pub struct NotchShape {
     hwnd: HWND,
     last: Option<(i32, i32, i32, i32, i32)>,
 }
 
-impl Glass {
-    pub fn attach(hwnd: isize) -> Glass {
+impl NotchShape {
+    pub fn attach(hwnd: isize) -> NotchShape {
         let h = hwnd_of(hwnd);
         // The pill has its own shape: no system rounding or frame for this window
         let pref = DWMWCP_DONOTROUND;
@@ -58,26 +57,26 @@ impl Glass {
         unsafe {
             let _ = DwmSetWindowAttribute(h, DWMWA_WINDOW_CORNER_PREFERENCE, &pref as *const _ as *const _, std::mem::size_of_val(&pref) as u32);
         }
-        Glass { hwnd: h, last: None }
+        NotchShape { hwnd: h, last: None }
     }
 
     /// `x`,`y`,`w`,`h`: the pill in CSS px relative to the page; `radius`: its corner radius; `scale`: device pixels per CSS px.
     pub fn set_shape(&mut self, x: f64, y: f64, w: f64, h: f64, radius: f64, scale: f64) {
-        let (l, t) = ((x * scale).round() as i32, (y * scale).round() as i32);
-        let (r, b) = (((x + w) * scale).round() as i32, ((y + h) * scale).round() as i32);
-        let d = ((radius.min(w / 2.0).min(h / 2.0) * 2.0) * scale).round() as i32;
+        const GROW: f64 = 1.5; // CSS px
+        let (l, t) = (((x - GROW) * scale).floor() as i32, ((y - GROW) * scale).floor() as i32);
+        let (r, b) = (((x + w + GROW) * scale).ceil() as i32, ((y + h + GROW) * scale).ceil() as i32);
+        let d = (((radius + GROW).min((w + 2.0 * GROW) / 2.0).min((h + 2.0 * GROW) / 2.0) * 2.0) * scale).round() as i32;
         let key = (l, t, r, b, d);
         if self.last == Some(key) || r <= l || b <= t {
             return;
         }
-        // SAFETY: the region is created here, copied by DWM during the call and deleted right after
+        // SAFETY: after a successful call the window owns the region (it must not be deleted here)
         unsafe {
             let rgn = CreateRoundRectRgn(l, t, r, b, d, d);
-            let bb = DWM_BLURBEHIND { dwFlags: DWM_BB_ENABLE | DWM_BB_BLURREGION, fEnable: BOOL(1), hRgnBlur: rgn, fTransitionOnMaximized: BOOL(0) };
-            let ok = DwmEnableBlurBehindWindow(self.hwnd, &bb).is_ok();
-            let _ = DeleteObject(HGDIOBJ(rgn.0));
-            if ok {
+            if SetWindowRgn(self.hwnd, Some(rgn), true) != 0 {
                 self.last = Some(key);
+            } else {
+                let _ = DeleteObject(HGDIOBJ(rgn.0));
             }
         }
     }
@@ -89,6 +88,51 @@ pub fn bring_to_top(hwnd: isize) {
     unsafe {
         let _ = SetWindowPos(hwnd_of(hwnd), Some(HWND_TOPMOST), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }
+}
+
+/// True while a fullscreen game, a fullscreen video or a borderless fullscreen window is in front: the foreground window covers its
+/// whole monitor (taskbar included) and has no title bar. A normal maximized window stops at the taskbar, or keeps its title bar
+/// when the taskbar hides itself, so it never counts; neither do the desktop, the taskbar or WaitPlay's own windows. The notch hides
+/// for that time instead of floating over it.
+pub fn fullscreen_app_active() -> bool {
+    use windows::Win32::Foundation::RECT;
+    use windows::Win32::Graphics::Gdi::{GetMonitorInfoW, MonitorFromWindow, MONITORINFO, MONITOR_DEFAULTTONEAREST};
+    use windows::Win32::System::Threading::GetCurrentProcessId;
+    use windows::Win32::UI::WindowsAndMessaging::{GetClassNameW, GetForegroundWindow, GetWindowLongW, GetWindowRect, GetWindowThreadProcessId, IsIconic, IsWindowVisible, GWL_STYLE};
+    // SAFETY: plain queries about the foreground window; every out-pointer is to a live local of the right type
+    unsafe {
+        let fg = GetForegroundWindow();
+        if fg.0.is_null() || !IsWindowVisible(fg).as_bool() || IsIconic(fg).as_bool() {
+            return false;
+        }
+        let mut class = [0u16; 64];
+        let n = GetClassNameW(fg, &mut class).max(0) as usize;
+        if matches!(String::from_utf16_lossy(&class[..n]).as_str(), "Progman" | "WorkerW" | "Shell_TrayWnd" | "Shell_SecondaryTrayWnd") {
+            return false;
+        }
+        let mut pid = 0u32;
+        GetWindowThreadProcessId(fg, Some(&mut pid));
+        if pid == GetCurrentProcessId() {
+            return false;
+        }
+        let mut r = RECT::default();
+        if GetWindowRect(fg, &mut r).is_err() {
+            return false;
+        }
+        let mut mi = MONITORINFO { cbSize: std::mem::size_of::<MONITORINFO>() as u32, ..Default::default() };
+        if !GetMonitorInfoW(MonitorFromWindow(fg, MONITOR_DEFAULTTONEAREST), &mut mi).as_bool() {
+            return false;
+        }
+        let m = mi.rcMonitor;
+        covers_screen_without_title_bar((r.left, r.top, r.right, r.bottom), (m.left, m.top, m.right, m.bottom), GetWindowLongW(fg, GWL_STYLE) as u32)
+    }
+}
+
+/// The rule behind [`fullscreen_app_active`], on plain numbers: the window rectangle contains the monitor rectangle and the window
+/// style lacks the title bar (`WS_CAPTION` = `WS_BORDER | WS_DLGFRAME`).
+fn covers_screen_without_title_bar(window: (i32, i32, i32, i32), monitor: (i32, i32, i32, i32), style: u32) -> bool {
+    const WS_CAPTION: u32 = 0x00C0_0000;
+    window.0 <= monitor.0 && window.1 <= monitor.1 && window.2 >= monitor.2 && window.3 >= monitor.3 && style & WS_CAPTION != WS_CAPTION
 }
 
 // ── settings window frame ────────────────────────────────────────────────────────────────────────────────────────────────
@@ -185,6 +229,18 @@ impl Drop for KillOnClose {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn only_a_borderless_window_covering_the_monitor_counts_as_fullscreen() {
+        let monitor = (0, 0, 1920, 1080);
+        let borderless = 0x9000_0000u32; // WS_POPUP | WS_VISIBLE
+        let titled = 0x16CF_0000u32; // a normal overlapped window
+        assert!(covers_screen_without_title_bar((0, 0, 1920, 1080), monitor, borderless), "a game or F11 video");
+        assert!(covers_screen_without_title_bar((-8, -8, 1928, 1088), monitor, borderless), "a few pixels over the edge still covers it");
+        assert!(!covers_screen_without_title_bar((-8, -8, 1928, 1048), monitor, titled), "maximized: stops at the taskbar");
+        assert!(!covers_screen_without_title_bar((-8, -8, 1928, 1088), monitor, titled), "maximized with a hidden taskbar keeps its title bar");
+        assert!(!covers_screen_without_title_bar((100, 100, 900, 700), monitor, borderless), "a small window");
+    }
 
     #[test]
     fn a_job_object_can_be_created_and_takes_a_child() {

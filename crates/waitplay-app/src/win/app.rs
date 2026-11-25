@@ -7,7 +7,7 @@
 //! waits on I/O.
 
 use super::menu_model::{self, Entry};
-use super::native::{self, Glass, KillOnClose};
+use super::native::{self, KillOnClose, NotchShape};
 use super::status::{self, SessionsView, Status};
 use super::{icons, integrations, login_item, permissions};
 use crate::account_ui::{AccountUi, Notify};
@@ -289,7 +289,7 @@ impl Supervisor {
 struct WidgetWin {
     // the webview drops before the window that hosts it
     webview: WebView,
-    glass: Glass,
+    shape: NotchShape,
     window: Window,
     /// The page's box in CSS px (the window is exactly this big).
     size: Option<(f64, f64)>,
@@ -831,8 +831,8 @@ impl App {
             })
             .build(&window)
             .map_err(|e| format!("webview: {}", e))?;
-        let glass = Glass::attach(window.hwnd());
-        Ok(WidgetWin { webview, glass, window, size: None, shown: false, screen_origin: None, last_rect: None, dragging: false, moved: false, drag_started: Instant::now(), last_move: Instant::now() })
+        let shape = NotchShape::attach(window.hwnd());
+        Ok(WidgetWin { webview, shape, window, size: None, shown: false, screen_origin: None, last_rect: None, dragging: false, moved: false, drag_started: Instant::now(), last_move: Instant::now() })
     }
 
     /// The widget stays on the display it was on; a first placement (or a vanished display) uses the display under the pointer.
@@ -1257,11 +1257,11 @@ impl App {
                 }
             }
             "shape" => {
-                // the page's live pill rectangle: the glass follows it frame by frame during expand/collapse
+                // the page's live pill rectangle: the window clip follows it frame by frame during expand/collapse
                 let g = |k: &str| v.get(k).and_then(Value::as_f64).unwrap_or(0.0);
                 if let Some(win) = self.widget.as_mut() {
                     let scale = win.window.scale_factor();
-                    win.glass.set_shape(g("x"), g("y"), g("w"), g("h"), g("r"), scale);
+                    win.shape.set_shape(g("x"), g("y"), g("w"), g("h"), g("r"), scale);
                 }
             }
             "platform" => {
