@@ -26,7 +26,9 @@ macro_rules! string_enum {
 }
 
 string_enum!(Appearance { System => "system", Light => "light", Dark => "dark" } default System);
-string_enum!(WidgetPosition { TopRight => "top-right", BottomRight => "bottom-right", BottomLeft => "bottom-left" } default BottomRight);
+string_enum!(WidgetPosition { TopRight => "top-right", TopCenter => "top-center", BottomRight => "bottom-right", BottomLeft => "bottom-left" } default BottomRight);
+/// Where a fresh install puts the widget: the Windows notch hangs at the top centre of the screen, the macOS bar keeps its corner.
+pub const DEFAULT_WIDGET_POSITION: WidgetPosition = if cfg!(windows) { WidgetPosition::TopCenter } else { WidgetPosition::BottomRight };
 string_enum!(OnFinish { Hide => "hide", Close => "close" } default Hide);
 
 #[derive(Serialize, Clone, PartialEq, Eq, Debug)]
@@ -93,7 +95,7 @@ impl Default for Settings {
             show_widget: true,
             show_dock_icon: false,
             appearance: Appearance::System,
-            widget_position: WidgetPosition::BottomRight,
+            widget_position: DEFAULT_WIDGET_POSITION,
             widget_compact: false,
             widget_show_status: true,
             platforms: Platforms { instagram: true, x: true, youtube: true },
@@ -273,7 +275,7 @@ mod tests {
         rejected.sort();
         assert_eq!(rejected, ["shortcuts.toggleWidget", "showWidget", "widgetPosition"]);
         assert_eq!(s.appearance, Appearance::Dark, "valid siblings still apply");
-        assert_eq!(s.widget_position, WidgetPosition::BottomRight);
+        assert_eq!(s.widget_position, DEFAULT_WIDGET_POSITION);
         assert!(s.show_widget);
         assert_eq!(s.shortcuts.toggle_widget, DEFAULT_TOGGLE_WIDGET);
     }
@@ -308,14 +310,14 @@ mod tests {
         assert_eq!(Settings::load_from(&p), Settings::default(), "corrupt file");
         std::fs::write(&p, r#"{"onFinish":"close","widgetPosition":42,"future":1}"#).unwrap();
         let l = Settings::load_from(&p);
-        assert_eq!((l.on_finish, l.widget_position), (OnFinish::Close, WidgetPosition::BottomRight));
+        assert_eq!((l.on_finish, l.widget_position), (OnFinish::Close, DEFAULT_WIDGET_POSITION));
         let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]
     fn json_uses_the_ui_field_names() {
         let v = Settings::default().to_json();
-        assert_eq!(v["widgetPosition"], "bottom-right");
+        assert_eq!(v["widgetPosition"], DEFAULT_WIDGET_POSITION.as_str());
         assert_eq!(v["shortcuts"]["toggleAutomation"], DEFAULT_TOGGLE_AUTOMATION);
         assert_eq!(v["platforms"]["x"], true);
         assert_eq!(v["onFinish"], "hide");

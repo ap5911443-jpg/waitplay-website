@@ -28,22 +28,22 @@ export const ConnectionCard: React.FC<ConnectionCardProps> = ({
     <Card
       title="Companion Service"
       subtitle="Local Node.js event bridge running on 127.0.0.1"
-      icon={<Server className="w-5 h-5 text-blue-400" />}
+      icon={<Server className="w-[18px] h-[18px]" />}
       action={
         <button
           onClick={onReconnect}
-          className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+          className="p-2 rounded-[10px] text-ink-soft hover:text-ink hover:bg-canvas-muted/60 border border-ink/15 transition-colors duration-200 motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-forest"
           title="Refresh Connection"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${status === "connecting" ? "animate-spin" : ""}`} />
+          <RefreshCw className={`w-4 h-4 ${status === "connecting" ? "animate-spin" : ""}`} />
         </button>
       }
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-3">
         {/* Bridge Status */}
-        <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-800/80">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-zinc-400">Bridge Status</span>
+        <div className="p-4 bg-canvas rounded-2xl border border-ink/10">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[13px] font-semibold text-ink">Bridge Status</span>
             {isConnected ? (
               <Badge variant="success" size="sm">
                 <Wifi className="w-3 h-3 mr-1" />
@@ -60,18 +60,18 @@ export const ConnectionCard: React.FC<ConnectionCardProps> = ({
               </Badge>
             )}
           </div>
-          <div className="mt-2 text-xs font-mono text-zinc-300 flex items-center justify-between">
+          <div className="mt-2 text-xs font-mono text-ink-soft flex items-center justify-between">
             <span>Port: {health?.port ?? 3001}</span>
             {latencyMs !== null && (
-              <span className="text-[11px] text-zinc-400">{latencyMs} ms latency</span>
+              <span className="text-[11px] text-ink-soft">{latencyMs} ms latency</span>
             )}
           </div>
         </div>
 
         {/* Claude Code Session Status */}
-        <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-800/80">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-zinc-400">Claude Code</span>
+        <div className="p-4 bg-canvas rounded-2xl border border-ink/10">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[13px] font-semibold text-ink">Claude Code</span>
             {hasActiveSession ? (
               <Badge variant="info" size="sm" pulse>
                 <Cpu className="w-3 h-3 mr-1" />
@@ -83,10 +83,10 @@ export const ConnectionCard: React.FC<ConnectionCardProps> = ({
               </Badge>
             )}
           </div>
-          <div className="mt-2 text-xs font-mono text-zinc-300 flex items-center justify-between truncate">
-            <span className="flex items-center space-x-1">
-              <Key className="w-3 h-3 text-zinc-500 shrink-0" />
-              <span className="truncate max-w-[140px]">
+          <div className="mt-2 text-xs font-mono text-ink-soft flex items-center justify-between truncate">
+            <span className="flex items-center gap-1.5">
+              <Key className="w-3 h-3 text-ink-muted shrink-0" />
+              <span className="truncate max-w-[180px]">
                 {bridgeToken ? `Token: ${bridgeToken.slice(0, 8)}...` : "Local Auth Active"}
               </span>
             </span>

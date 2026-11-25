@@ -91,25 +91,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       subtitle="Configure auto-launch rules, display mode, and gameplay parameters."
       maxWidth="lg"
     >
-      <div className="space-y-6 text-xs text-zinc-300">
+      <div className="space-y-6 text-[13px] text-ink">
         {/* Display Mode */}
         <div>
-          <label className="block text-xs font-semibold text-zinc-200 mb-2">
+          <label className="block text-sm font-semibold text-ink mb-2.5">
             Display Mode
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 min-[480px]:grid-cols-2 gap-3">
             <button
               onClick={() => handleDisplayModeChange("compact")}
-              className={`flex items-start p-3 rounded-xl border text-left transition-colors cursor-pointer ${
+              className={`flex items-start p-4 rounded-2xl border text-left transition-colors duration-200 motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${
                 prefs.displayMode === "compact"
-                  ? "bg-blue-600/10 border-blue-500/50 text-blue-400"
-                  : "bg-zinc-950/50 border-zinc-800 hover:border-zinc-700 text-zinc-400"
+                  ? "bg-lavender/50 border-forest ring-1 ring-forest text-forest"
+                  : "bg-white border-ink/20 hover:border-ink/40 text-ink-soft"
               }`}
             >
-              <Layout className="w-5 h-5 mr-2.5 mt-0.5 shrink-0" />
+              <Layout className="w-5 h-5 mr-3 mt-0.5 shrink-0" />
               <div>
-                <div className="font-medium text-zinc-100">Compact Floating Panel</div>
-                <div className="text-[11px] text-zinc-400 mt-0.5">
+                <div className="font-semibold text-ink">Compact Floating Panel</div>
+                <div className="text-xs leading-[1.45] text-ink-soft mt-1">
                   Docked in corner. Minimizable with active telemetry.
                 </div>
               </div>
@@ -117,16 +117,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <button
               onClick={() => handleDisplayModeChange("fullscreen")}
-              className={`flex items-start p-3 rounded-xl border text-left transition-colors cursor-pointer ${
+              className={`flex items-start p-4 rounded-2xl border text-left transition-colors duration-200 motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${
                 prefs.displayMode === "fullscreen"
-                  ? "bg-blue-600/10 border-blue-500/50 text-blue-400"
-                  : "bg-zinc-950/50 border-zinc-800 hover:border-zinc-700 text-zinc-400"
+                  ? "bg-lavender/50 border-forest ring-1 ring-forest text-forest"
+                  : "bg-white border-ink/20 hover:border-ink/40 text-ink-soft"
               }`}
             >
-              <Monitor className="w-5 h-5 mr-2.5 mt-0.5 shrink-0" />
+              <Monitor className="w-5 h-5 mr-3 mt-0.5 shrink-0" />
               <div>
-                <div className="font-medium text-zinc-100">Full-Screen Overlay</div>
-                <div className="text-[11px] text-zinc-400 mt-0.5">
+                <div className="font-semibold text-ink">Full-Screen Overlay</div>
+                <div className="text-xs leading-[1.45] text-ink-soft mt-1">
                   Full browser viewport with agent progress header.
                 </div>
               </div>
@@ -135,11 +135,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Auto Launch & Delays */}
-        <div className="p-4 bg-zinc-950/50 rounded-xl border border-zinc-800 space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="p-5 bg-white rounded-2xl border border-ink/10 space-y-4">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <div className="font-medium text-zinc-200">Auto-Launch During Inference</div>
-              <div className="text-[11px] text-zinc-400 mt-0.5">
+              <div className="font-semibold text-sm text-ink">Auto-Launch During Inference</div>
+              <div className="text-xs leading-[1.45] text-ink-soft mt-0.5">
                 Automatically opens a mini-game when Claude Code starts working.
               </div>
             </div>
@@ -147,19 +147,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               type="checkbox"
               checked={prefs.autoLaunch}
               onChange={() => handleToggle("autoLaunch")}
-              className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 bg-zinc-900 border-zinc-700"
+              className="w-5 h-5 shrink-0 rounded accent-forest cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             />
           </div>
 
           {prefs.autoLaunch && (
-            <div className="pt-3 border-t border-zinc-800/80 space-y-3">
+            <div className="pt-4 border-t border-ink/10 space-y-4">
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center space-x-1.5 font-medium text-zinc-300">
-                    <Clock className="w-3.5 h-3.5 text-blue-400" />
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <div className="flex items-center gap-1.5 font-semibold text-ink">
+                    <Clock className="w-4 h-4 text-forest" />
                     <span>Start Delay: <strong>{prefs.startDelaySeconds}s</strong></span>
                   </div>
-                  <span className="text-[10px] text-zinc-500">Default: 4 seconds</span>
+                  <span className="text-[11px] text-ink-soft">Default: 4 seconds</span>
                 </div>
                 <input
                   type="range"
@@ -167,19 +167,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   max={15}
                   value={prefs.startDelaySeconds}
                   onChange={(e) => handleStartDelayChange(parseInt(e.target.value, 10))}
-                  className="w-full accent-blue-600 cursor-pointer"
+                  className="w-full accent-forest cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-forest rounded"
                 />
-                <div className="text-[10px] text-zinc-500 mt-0.5">
+                <div className="text-[11px] text-ink-soft mt-0.5">
                   Tasks finishing before this delay will not open the game.
                 </div>
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-medium text-zinc-300">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="font-semibold text-ink">
                     Results Screen Duration: <strong>{prefs.resultsDurationSeconds}s</strong>
                   </span>
-                  <span className="text-[10px] text-zinc-500">0 = Stay open</span>
+                  <span className="text-[11px] text-ink-soft">0 = Stay open</span>
                 </div>
                 <input
                   type="range"
@@ -187,7 +187,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   max={20}
                   value={prefs.resultsDurationSeconds}
                   onChange={(e) => handleResultsDurationChange(parseInt(e.target.value, 10))}
-                  className="w-full accent-blue-600 cursor-pointer"
+                  className="w-full accent-forest cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-forest rounded"
                 />
               </div>
             </div>
@@ -195,9 +195,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Gameplay Parameters */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
-            <label className="block text-xs font-semibold text-zinc-200 mb-2">
+            <label className="block text-sm font-semibold text-ink mb-2.5">
               Memory Game Difficulty
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -205,14 +205,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <button
                   key={d}
                   onClick={() => handleDifficultyChange(d)}
-                  className={`py-2 px-2 text-center rounded-lg border capitalize font-medium transition-colors cursor-pointer ${
+                  className={`py-2.5 px-2 text-center rounded-xl border capitalize font-semibold transition-colors duration-200 motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${
                     prefs.difficulty === d
-                      ? "bg-blue-600/10 border-blue-500 text-blue-400"
-                      : "bg-zinc-950/50 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                      ? "bg-lavender/50 border-forest ring-1 ring-forest text-ink"
+                      : "bg-white border-ink/20 text-ink hover:border-ink/40"
                   }`}
                 >
                   {d}
-                  <span className="block text-[10px] text-zinc-500 font-normal">
+                  <span className="block text-[11px] text-ink-soft font-normal">
                     {d === "easy" ? "6 pairs" : d === "medium" ? "8 pairs" : "10 pairs"}
                   </span>
                 </button>
@@ -221,36 +221,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-zinc-200 mb-2">
+            <label className="block text-sm font-semibold text-ink mb-2.5">
               Sound Effects
             </label>
             <button
               onClick={() => handleToggle("soundEnabled")}
-              className={`w-full py-2.5 px-3 rounded-lg border flex items-center justify-between transition-colors cursor-pointer ${
+              className={`w-full min-h-[52px] py-2.5 px-3.5 rounded-xl border flex items-center justify-between gap-2 transition-colors duration-200 motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${
                 prefs.soundEnabled
-                  ? "bg-blue-600/10 border-blue-500/50 text-blue-400"
-                  : "bg-zinc-950/50 border-zinc-800 text-zinc-400 hover:border-zinc-700"
+                  ? "bg-lavender/50 border-forest ring-1 ring-forest text-forest"
+                  : "bg-white border-ink/20 text-ink-soft hover:border-ink/40"
               }`}
             >
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 {prefs.soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                <span className="font-medium text-zinc-200">
+                <span className="font-semibold text-ink text-left">
                   {prefs.soundEnabled ? "Synthesized Sound Enabled" : "Muted"}
                 </span>
               </div>
-              <span className="text-[11px] font-mono">{prefs.soundEnabled ? "ON" : "OFF"}</span>
+              <span className="text-[11px] font-semibold tracking-wide">{prefs.soundEnabled ? "ON" : "OFF"}</span>
             </button>
           </div>
         </div>
 
         {/* Agent Interaction Rules */}
-        <div className="p-4 bg-zinc-950/50 rounded-xl border border-zinc-800 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-start space-x-2.5">
-              <PauseCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+        <div className="p-5 bg-white rounded-2xl border border-ink/10 space-y-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <PauseCircle className="w-5 h-5 text-forest mt-0.5 shrink-0" />
               <div>
-                <div className="font-medium text-zinc-200">Pause on Input Request</div>
-                <div className="text-[11px] text-zinc-400 mt-0.5">
+                <div className="font-semibold text-sm text-ink">Pause on Input Request</div>
+                <div className="text-xs leading-[1.45] text-ink-soft mt-0.5">
                   Temporarily pause active gameplay when Claude Code requests user confirmation or tool permissions.
                 </div>
               </div>
@@ -259,17 +259,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               type="checkbox"
               checked={prefs.pauseOnInputRequired}
               onChange={() => handleToggle("pauseOnInputRequired")}
-              className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 bg-zinc-900 border-zinc-700"
+              className="w-5 h-5 shrink-0 rounded accent-forest cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             />
           </div>
         </div>
 
         {/* Categories Preference */}
         <div>
-          <label className="block text-xs font-semibold text-zinc-200 mb-1">
+          <label className="block text-sm font-semibold text-ink mb-1">
             Game Categories
           </label>
-          <p className="text-[11px] text-zinc-400 mb-2">
+          <p className="text-xs leading-[1.45] text-ink-soft mb-3">
             Playable games matching selected categories will be launched. Unfinished placeholder games are excluded.
           </p>
           <div className="flex flex-wrap gap-2">
@@ -284,15 +284,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <button
                   key={cat.id}
                   onClick={() => handleCategoryToggle(cat.id)}
-                  className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors cursor-pointer flex items-center space-x-1.5 ${
+                  className={`px-3.5 py-2 rounded-[10px] border text-[13px] font-semibold transition-colors duration-200 motion-reduce:transition-none cursor-pointer flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2 focus-visible:ring-offset-canvas ${
                     isSelected
-                      ? "bg-blue-600/10 border-blue-500/50 text-blue-300"
-                      : "bg-zinc-950/40 border-zinc-800 text-zinc-500 hover:border-zinc-700"
+                      ? "bg-lavender/50 border-forest ring-1 ring-forest text-ink"
+                      : "bg-white border-ink/20 text-ink-soft hover:border-ink/40"
                   }`}
                 >
                   <span>{cat.label}</span>
                   {!cat.ready && (
-                    <span className="text-[9px] px-1 py-0.2 bg-zinc-800 text-zinc-400 rounded">
+                    <span className="text-[10px] px-1.5 py-0.5 bg-canvas-muted text-ink-soft rounded-full font-semibold">
                       Soon
                     </span>
                   )}
@@ -303,18 +303,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Footer actions */}
-        <div className="pt-4 border-t border-zinc-800 flex items-center justify-between">
+        <div className="pt-5 border-t border-ink/10 flex items-center justify-between gap-3">
           <button
             onClick={handleResetDefaults}
-            className="flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="flex items-center gap-2 text-[13px] font-semibold text-ink-soft hover:text-ink transition-colors duration-200 motion-reduce:transition-none rounded-lg px-2 py-2 -ml-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-forest"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-4 h-4" />
             <span>Reset Defaults</span>
           </button>
 
           <button
             onClick={onClose}
-            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition-colors"
+            className="h-10 px-5 bg-lavender hover:bg-lavender-hover text-ink border border-ink/15 rounded-xl text-sm font-semibold transition-colors duration-200 motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
           >
             Done
           </button>

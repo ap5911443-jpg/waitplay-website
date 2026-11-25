@@ -43,16 +43,18 @@ pub const EDGE_MARGIN: f64 = 8.0;
 /// Gap between the widget and the entertainment window that shares its corner.
 pub const STACK_GAP: f64 = 8.0;
 
-/// Top-left corner of a `size` window in the chosen corner of `work`.
+/// Top-left corner of a `size` window in the chosen corner (or, for the notch, the middle of the top edge) of `work`.
 pub fn corner_origin(work: LRect, size: (f64, f64), pos: WidgetPosition, margin: f64) -> (f64, f64) {
     let left = work.x + margin;
     let right = work.right() - margin - size.0;
     let top = work.y + margin;
     let bottom = work.bottom() - margin - size.1;
     // never leave the usable area, even when the window is larger than it
+    let centre = work.x + (work.w - size.0) / 2.0;
     let clamp = |v: f64, lo: f64, hi: f64| if hi < lo { lo } else { v.clamp(lo, hi) };
     let (x, y) = match pos {
         WidgetPosition::TopRight => (right, top),
+        WidgetPosition::TopCenter => (centre, top),
         WidgetPosition::BottomRight => (right, bottom),
         WidgetPosition::BottomLeft => (left, bottom),
     };
@@ -69,8 +71,10 @@ pub fn companion_rect(work: LRect, desired: (f64, f64), pos: WidgetPosition, wid
     let h = desired.1.min(max_h);
     let right = work.right() - EDGE_MARGIN - w;
     let left = work.x + EDGE_MARGIN;
+    let centre = work.x + (work.w - w) / 2.0;
     let (x, y) = match pos {
         WidgetPosition::TopRight => (right, work.y + EDGE_MARGIN + block),
+        WidgetPosition::TopCenter => (centre, work.y + EDGE_MARGIN + block),
         WidgetPosition::BottomRight => (right, work.bottom() - EDGE_MARGIN - block - h),
         WidgetPosition::BottomLeft => (left, work.bottom() - EDGE_MARGIN - block - h),
     };
@@ -94,6 +98,23 @@ mod tests {
         assert_eq!(corner_origin(WORK, size, WidgetPosition::TopRight, 8.0), (1232.0, 33.0));
         assert_eq!(corner_origin(WORK, size, WidgetPosition::BottomRight, 8.0), (1232.0, 761.0));
         assert_eq!(corner_origin(WORK, size, WidgetPosition::BottomLeft, 8.0), (8.0, 761.0));
+    }
+
+    #[test]
+    fn the_notch_hangs_at_the_middle_of_the_top_edge_and_stays_centred_as_it_grows() {
+        for w in [148.0, 392.0] {
+            let (x, y) = corner_origin(WORK, (w, 40.0), WidgetPosition::TopCenter, 0.0);
+            assert_eq!((x, y), ((1440.0 - w) / 2.0, 25.0), "width {w}");
+        }
+        // on a display left of the primary the centre moves with it
+        let work = LRect::new(-1920.0, 0.0, 1920.0, 1080.0);
+        assert_eq!(corner_origin(work, (400.0, 40.0), WidgetPosition::TopCenter, 0.0), (-1160.0, 0.0));
+    }
+
+    #[test]
+    fn companion_centres_under_a_top_centre_widget() {
+        let r = companion_rect(WORK, (420.0, 700.0), WidgetPosition::TopCenter, 56.0);
+        assert_eq!((r.x, r.y), ((1440.0 - 420.0) / 2.0, 25.0 + 8.0 + 56.0 + STACK_GAP));
     }
 
     #[test]

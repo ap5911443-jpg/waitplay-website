@@ -42,6 +42,9 @@ pub struct SessionsView {
     /// Sessions (terminals / conversations) that are working right now, and working or waiting for the user.
     pub working_sessions: usize,
     pub active_sessions: usize,
+    /// When the longest-running working session started its current task (ms since the epoch), straight from the bridge's
+    /// `currentTaskStartedAt`; `None` when nothing is working or the bridge did not say.
+    pub working_since: Option<i64>,
 }
 
 impl SessionsView {
@@ -76,6 +79,7 @@ pub fn parse_sessions(json: &str, now_ms: i64) -> Option<SessionsView> {
     let sessions = root.get("sessions")?.as_array()?;
     let mut agents: Vec<AgentRow> = Vec::new();
     let (mut working_sessions, mut active_sessions) = (0usize, 0usize);
+    let mut working_since: Option<i64> = None;
     for s in sessions.iter().filter_map(Value::as_object) {
         let id = s.get("agent").and_then(Value::as_str).unwrap_or("").to_string();
         if id.is_empty() {
@@ -92,6 +96,11 @@ pub fn parse_sessions(json: &str, now_ms: i64) -> Option<SessionsView> {
         let terminal = s.get("terminal").and_then(Value::as_str).unwrap_or("").to_string();
         if activity == Activity::Working {
             working_sessions += 1;
+            let began = s.get("currentTaskStartedAt").and_then(|v| v.as_i64().or_else(|| v.as_f64().map(|f| f as i64))).filter(|t| *t > 0 && *t <= now_ms);
+            working_since = match (working_since, began) {
+                (Some(a), Some(b)) => Some(a.min(b)),
+                (a, b) => a.or(b),
+            };
         }
         if activity != Activity::Idle {
             active_sessions += 1;
@@ -110,7 +119,7 @@ pub fn parse_sessions(json: &str, now_ms: i64) -> Option<SessionsView> {
         }
     }
     agents.sort_by(|a, b| a.name.cmp(&b.name));
-    Some(SessionsView { agents, working_sessions, active_sessions })
+    Some(SessionsView { agents, working_sessions, active_sessions, working_since })
 }
 
 fn rank(a: Activity) -> u8 {
@@ -213,6 +222,28 @@ mod tests {
         assert_eq!(v.activity_of("claude-code"), Activity::Working);
         assert_eq!(v.activity_of("opencode"), Activity::Idle, "20 s of silence: the bridge watchdog is about to complete it");
         assert_eq!(v.agents.len(), 2);
+    }
+
+    #[test]
+    fn running_time_starts_at_the_oldest_current_task_of_a_working_session() {
+        let json = format!(
+            r#"{{"sessions":[
+                {{"sessionId":"a","agent":"claude-code","status":"WORKING","lastEventAt":{},"currentTaskStartedAt":{}}},
+                {{"sessionId":"b","agent":"codex","status":"WORKING","lastEventAt":{},"currentTaskStartedAt":{}}},
+                {{"sessionId":"c","agent":"omp","status":"WAITING_FOR_INPUT","lastEventAt":{},"currentTaskStartedAt":{}}},
+                {{"sessionId":"d","agent":"cline","status":"WORKING","lastEventAt":{}}}]}}"#,
+            NOW - 500,
+            NOW - 90_000,
+            NOW - 500,
+            NOW - 30_000,
+            NOW - 500,
+            NOW - 600_000,
+            NOW - 500
+        );
+        let v = parse_sessions(&json, NOW).unwrap();
+        assert_eq!(v.working_since, Some(NOW - 90_000), "the waiting session and the one without a start do not count");
+        assert_eq!(parse_sessions(&body(&[("codex", "WORKING", NOW - 500)]), NOW).unwrap().working_since, None);
+        assert_eq!(parse_sessions(&body(&[("codex", "WAITING_FOR_INPUT", NOW - 500)]), NOW).unwrap().working_since, None);
     }
 
     #[test]

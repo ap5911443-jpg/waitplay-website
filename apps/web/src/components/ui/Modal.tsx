@@ -38,23 +38,23 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40">
       <div
-        className={`bg-zinc-900 border border-zinc-800 rounded-xl w-full ${maxWidthStyles[maxWidth]} shadow-2xl overflow-hidden scale-100 animate-in zoom-in-95 duration-150`}
+        className={`bg-canvas border border-ink/15 rounded-[20px] w-full ${maxWidthStyles[maxWidth]} max-h-[calc(100vh-2rem)] flex flex-col shadow-popover overflow-hidden`}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
+        <div className="flex items-start justify-between gap-4 px-5 sm:px-6 py-5 border-b border-ink/10 shrink-0">
           <div>
-            <h3 className="text-sm font-semibold text-zinc-100">{title}</h3>
-            {subtitle && <p className="text-xs text-zinc-400 mt-0.5">{subtitle}</p>}
+            <h3 className="font-serif text-2xl leading-7 font-normal text-ink">{title}</h3>
+            {subtitle && <p className="text-[13px] leading-[1.45] text-ink-soft mt-1">{subtitle}</p>}
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+            className="shrink-0 p-2 rounded-[10px] text-ink-soft hover:text-ink hover:bg-canvas-muted/60 transition-colors duration-200 motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-forest"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
-        <div className="p-5">{children}</div>
+        <div className="p-5 sm:p-6 overflow-y-auto">{children}</div>
       </div>
     </div>
   );

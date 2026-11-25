@@ -101,7 +101,13 @@ fn save_widget_anchor(a: Option<&(String, i32, i32)>) {
 /// The window origin (physical px) for a widget anchored at `anchor` (the corner it grows from), kept fully inside the work area of
 /// the display that contains the anchor. `None` when no display contains it any more (monitor unplugged): the caller uses the corner.
 fn origin_from_anchor(corner: &str, anchor: (i32, i32), size: (i32, i32), screens: &[Screen]) -> Option<(i32, i32)> {
-    let ox = if corner.ends_with("right") { anchor.0 - size.0 } else { anchor.0 };
+    let ox = if corner.ends_with("right") {
+        anchor.0 - size.0
+    } else if corner.ends_with("center") {
+        anchor.0 - size.0 / 2 // the notch grows and shrinks around its middle
+    } else {
+        anchor.0
+    };
     let oy = if corner.starts_with("bottom") { anchor.1 - size.1 } else { anchor.1 };
     for s in screens {
         let (wx, wy) = platform::to_physical(s, s.work.x, s.work.y);
@@ -333,6 +339,8 @@ struct App {
     screens: Vec<Screen>,
     ticks: u64,
     polling: bool,
+    /// A fullscreen game, video or presentation is in front: the notch stays out of its way until it ends.
+    fullscreen_busy: bool,
     last_widget_state: Option<Value>,
     last_settings_state: Option<String>,
     /// (id, severity, message, hint)
@@ -366,6 +374,7 @@ impl App {
             screens: Vec::new(),
             ticks: 0,
             polling: false,
+            fullscreen_busy: false,
             last_widget_state: None,
             last_settings_state: None,
             problems: Vec::new(),
@@ -495,6 +504,14 @@ impl App {
         }
         if self.ticks % REFRESH_EVERY == 0 {
             self.refresh_runtime(false);
+            let busy = native::fullscreen_app_active();
+            if busy != self.fullscreen_busy {
+                self.fullscreen_busy = busy;
+                wp_info!("fullscreen app {}: the widget is {}", if busy { "in front" } else { "gone" }, if busy { "hidden" } else { "shown again" });
+                if let Some(w) = self.widget.as_ref().filter(|w| w.shown) {
+                    w.window.set_visible(!busy);
+                }
+            }
             let now = platform::screens();
             if now != self.screens {
                 wp_info!("display configuration changed ({} -> {} displays)", self.screens.len(), now.len());
@@ -634,6 +651,7 @@ impl App {
             "compact": self.settings.widget_compact,
             "showStatus": self.settings.widget_show_status,
             "corner": self.settings.widget_position.as_str(),
+            "since": view.working_since,
         })
     }
 
@@ -847,8 +865,14 @@ impl App {
         }
         let (p, s) = (w.window.outer_position(), w.window.outer_size());
         let (Ok(p), s) = (p, s) else { return };
-        let (right, bottom) = (pos.as_str().ends_with("right"), pos.as_str().starts_with("bottom"));
-        let ax = if right { p.x + s.width as i32 } else { p.x };
+        let (right, centre, bottom) = (pos.as_str().ends_with("right"), pos.as_str().ends_with("center"), pos.as_str().starts_with("bottom"));
+        let ax = if right {
+            p.x + s.width as i32
+        } else if centre {
+            p.x + s.width as i32 / 2
+        } else {
+            p.x
+        };
         let ay = if bottom { p.y + s.height as i32 } else { p.y };
         w.last_rect = None;
         self.widget_anchor = Some((pos.as_str().to_string(), ax, ay));
@@ -865,6 +889,7 @@ impl App {
         }
         let anchor = self.widget_anchor.clone();
         let screens = self.screens.clone();
+        let busy_now = self.fullscreen_busy;
         let Some(w) = self.widget.as_mut() else { return };
         if w.dragging {
             return;
@@ -889,7 +914,9 @@ impl App {
             native::bring_to_top(w.window.hwnd());
         }
         if !w.shown {
-            w.window.set_visible(true);
+            if !busy_now {
+                w.window.set_visible(true);
+            }
             w.shown = true;
             wp_info!("widget shown {} at ({}, {}), {}x{} px", pos.as_str(), px, py, pw, ph);
         }

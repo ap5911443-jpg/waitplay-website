@@ -24,13 +24,13 @@ export const SessionCard: React.FC<SessionCardProps> = ({
     <Card
       title="Session Information"
       subtitle="Claude Code session metadata and multi-session routing"
-      icon={<FolderGit2 className="w-5 h-5 text-blue-400" />}
+      icon={<FolderGit2 className="w-[18px] h-[18px]" />}
       action={
         sessions.length > 1 ? (
           <select
             value={activeSession?.sessionId ?? ""}
             onChange={(e) => onSelectSession(e.target.value)}
-            className="bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs rounded-lg px-2 py-1 outline-hidden"
+            className="bg-white border border-ink/25 text-ink text-[13px] rounded-lg px-2.5 py-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-forest"
           >
             {sessions.map((s) => (
               <option key={s.sessionId} value={s.sessionId}>
@@ -41,33 +41,33 @@ export const SessionCard: React.FC<SessionCardProps> = ({
         ) : undefined
       }
     >
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-800/80">
-          <div className="flex items-center space-x-1.5 text-zinc-400 text-xs">
-            <Layers className="w-3.5 h-3.5 text-blue-400" />
+      <div className="grid grid-cols-1 gap-3 h-full">
+        <div className="px-4 py-3 bg-canvas rounded-2xl border border-ink/10 min-w-0 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-1.5 text-ink-soft text-xs font-semibold">
+            <Layers className="w-4 h-4 text-forest" />
             <span>Session ID</span>
           </div>
-          <div className="mt-1 font-mono text-xs text-zinc-200 font-semibold truncate">
+          <div className="font-mono text-[13px] text-ink font-medium truncate min-w-0">
             {activeSession?.sessionId || "standalone-local"}
           </div>
         </div>
 
-        <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-800/80">
-          <div className="flex items-center space-x-1.5 text-zinc-400 text-xs">
-            <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="px-4 py-3 bg-canvas rounded-2xl border border-ink/10 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-1.5 text-ink-soft text-xs font-semibold">
+            <CheckSquare className="w-4 h-4 text-forest" />
             <span>Tasks Finished</span>
           </div>
-          <div className="mt-1 font-mono text-lg text-zinc-100 font-bold">
+          <div className="font-serif text-[30px] leading-9 text-ink lining-nums tabular-nums">
             {activeSession?.totalTasksCompleted ?? 0}
           </div>
         </div>
 
-        <div className="p-3 bg-zinc-950/40 rounded-xl border border-zinc-800/80 col-span-2 sm:col-span-1">
-          <div className="flex items-center space-x-1.5 text-zinc-400 text-xs">
-            <Clock className="w-3.5 h-3.5 text-amber-400" />
+        <div className="px-4 py-3 bg-canvas rounded-2xl border border-ink/10 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-1.5 text-ink-soft text-xs font-semibold">
+            <Clock className="w-4 h-4 text-forest" />
             <span>Last Task Time</span>
           </div>
-          <div className="mt-1 font-mono text-lg text-zinc-100 font-bold">
+          <div className="font-serif text-[30px] leading-9 text-ink lining-nums tabular-nums">
             {formatTime(activeSession?.lastTaskDurationMs)}
           </div>
         </div>

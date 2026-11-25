@@ -117,13 +117,15 @@ select {
 .banner .bmsg { font-weight: 500; } .banner .bhint { font-size: 12px; color: var(--label2); }
 
 /* widget picker */
-.picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 12px 14px 14px; }
+.picker { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 12px 14px 14px; }
 .card { border: 0; background: none; padding: 0; text-align: center; }
 .mock { position: relative; aspect-ratio: 16 / 10; border-radius: 7px; background: var(--mock-bg); border: .5px solid var(--sep); overflow: hidden; outline: 2px solid transparent; outline-offset: 2px; }
 .mock::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 9%; background: var(--mock-bar); }
 .mpill { position: absolute; width: 38%; height: 15%; border-radius: 8px; background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,.3); }
 .mpill::before { content: ""; position: absolute; left: 12%; top: 32%; width: 22%; height: 36%; border-radius: 50%; background: var(--green); }
 .mpill.top-right { top: 16%; right: 6%; } .mpill.bottom-right { bottom: 8%; right: 6%; } .mpill.bottom-left { bottom: 8%; left: 6%; }
+.mpill.top-center { top: 14%; left: 50%; width: 30%; height: 13%; transform: translateX(-50%); border-radius: 8px; background: #080808; box-shadow: none; }
+.mpill.top-center::before { background: #639085; }
 .card[aria-checked="true"] .mock { outline-color: var(--accent); }
 .card[aria-checked="true"] .clabel { color: var(--accent); font-weight: 500; }
 .card:focus-visible { outline: none; }
@@ -403,7 +405,7 @@ function paneAgents() {
       h("button", { class: "btn", type: "button", onclick: () => send({ t: "revealLogs" }) }, "Show log file in Explorer"))));
 }
 
-const POSITIONS = [["top-right", "Top right"], ["bottom-right", "Bottom right"], ["bottom-left", "Bottom left"]];
+const POSITIONS = [["top-center", "Top center"], ["top-right", "Top right"], ["bottom-right", "Bottom right"], ["bottom-left", "Bottom left"]];
 function paneWidget() {
   const enable = switchRow("Enable widget", "Show a small status pill above other windows.", "showWidget");
   const picker = h("div", { class: "picker", role: "radiogroup", "aria-label": "Widget position" });
@@ -414,7 +416,7 @@ function paneWidget() {
     b.addEventListener("keydown", e => {
       const d = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
       if (!d) return; e.preventDefault();
-      const n = (i + d + 3) % 3; set({ widgetPosition: POSITIONS[n][0] }); cards[n].focus();
+      const n = (i + d + POSITIONS.length) % POSITIONS.length; set({ widgetPosition: POSITIONS[n][0] }); cards[n].focus();
     });
     picker.append(b); return b;
   });

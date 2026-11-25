@@ -17,12 +17,12 @@ export const Badge: React.FC<BadgeProps> = ({
   className = "",
 }) => {
   const variantStyles = {
-    default: "bg-zinc-800 text-zinc-300 border-zinc-700",
-    success: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
-    warning: "bg-amber-500/10 text-amber-400 border-amber-500/30",
-    danger: "bg-rose-500/10 text-rose-400 border-rose-500/30",
-    info: "bg-blue-500/10 text-blue-400 border-blue-500/30",
-    neutral: "bg-zinc-900 text-zinc-400 border-zinc-800",
+    default: "bg-canvas-muted text-ink border-ink/10",
+    success: "bg-[#E3EFEA] text-forest border-forest/25",
+    warning: "bg-[#FFEBD0] text-[#7A4300] border-orange/60",
+    danger: "bg-[#F8E3DF] text-[#9B2C1F] border-[#9B2C1F]/25",
+    info: "bg-lavender text-ink border-ink/10",
+    neutral: "bg-white text-ink-soft border-ink/15",
   };
 
   const sizeStyles = {
@@ -32,11 +32,11 @@ export const Badge: React.FC<BadgeProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center font-medium rounded-full border ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={`inline-flex items-center font-semibold whitespace-nowrap rounded-full border ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
     >
       {pulse && (
         <span className="relative flex h-2 w-2 mr-1.5">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-60"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-current"></span>
         </span>
       )}
