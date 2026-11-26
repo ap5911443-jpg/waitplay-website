@@ -35,12 +35,10 @@ export const SiteHeader: React.FC = () => {
         <div className="flex items-center justify-between">
           {/* Brand Logo & Wordmark */}
           <a href="#" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-[#034F46] flex items-center justify-center text-[#FFFFEB] transition-transform duration-200 group-hover:scale-105 shadow-sm">
-              <span className="font-serif font-bold text-lg leading-none tracking-tight">W</span>
-            </div>
+            <img src="/logo.png" alt="" width={32} height={32} className="w-8 h-8 transition-transform duration-200 group-hover:scale-105" />
             <div className="flex items-baseline gap-1">
               <span className="font-serif text-[21px] font-normal tracking-tight text-[#1A1A1A]">
-                Wait<span className="font-sans font-semibold text-[19px] text-[#034F46]">Play</span>
+                Vibe<span className="font-sans font-semibold text-[19px] text-[#034F46]"> Play</span>
               </span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#FFA946] animate-pulse ml-0.5" />
             </div>

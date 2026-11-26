@@ -63,9 +63,7 @@ export const FullScreenGameModal: React.FC<FullScreenGameModalProps> = ({
       <div className={`flex items-center justify-between px-4 sm:px-6 py-2.5 border-b backdrop-blur-md shrink-0 z-30 ${activeTab === "games" ? "bg-canvas/90 border-ink/10" : "bg-zinc-950/80 border-zinc-800"}`}>
         <div className="flex items-center space-x-3 sm:space-x-4">
           <div className="flex items-center space-x-2">
-            <div className={`p-1.5 rounded-xl ${activeTab === "games" ? "bg-forest text-canvas" : "bg-blue-600/20 text-blue-400"}`}>
-              <Gamepad2 className="w-4 h-4" />
-            </div>
+            <img src="/logo.png" alt="" width={28} height={28} className="w-7 h-7" />
             <span className={`text-base font-serif font-normal hidden sm:inline ${activeTab === "games" ? "text-ink" : "text-zinc-100"}`}>Vibe Play</span>
           </div>
 

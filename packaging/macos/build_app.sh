@@ -33,7 +33,11 @@ sed -e "s/@VERSION@/$VERSION/" -e "s/@BUILD@/$BUILD/" "$HERE/Info.plist.in" > "$
 printf 'APPL????' > "$APP/Contents/PkgInfo"
 
 ICONSET="$OUT/WaitPlay.iconset"
-python3 "$HERE/make_icon.py" "$ICONSET"
+mkdir -p "$ICONSET"
+for s in 16 32 128 256 512; do
+  sips -z $s $s "$HERE/icon_1024.png" --out "$ICONSET/icon_${s}x${s}.png" >/dev/null
+  sips -z $((s * 2)) $((s * 2)) "$HERE/icon_1024.png" --out "$ICONSET/icon_${s}x${s}@2x.png" >/dev/null
+done
 iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/WaitPlay.icns"
 rm -rf "$ICONSET"
 

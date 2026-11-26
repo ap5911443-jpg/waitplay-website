@@ -65,9 +65,7 @@ export const CompactGamePanel: React.FC<CompactGamePanelProps> = ({
       {/* Floating Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-canvas-muted/40 border-b border-ink/10 shrink-0">
         <div className="flex items-center space-x-2.5">
-          <div className="w-7 h-7 rounded-xl bg-forest text-canvas flex items-center justify-center shadow-subtle">
-            <Gamepad2 className="w-4 h-4" />
-          </div>
+          <img src="/logo.png" alt="" width={28} height={28} className="w-7 h-7" />
           <div>
             <div className="flex items-center space-x-1.5">
               <span className="text-sm font-serif font-normal text-ink">Vibe Play</span>

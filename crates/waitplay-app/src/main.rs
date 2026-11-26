@@ -8,6 +8,8 @@ mod account_ui;
 mod cli;
 mod companion;
 mod logging;
+#[cfg(any(target_os = "macos", windows, test))]
+mod logo;
 #[cfg(any(target_os = "macos", test))]
 mod mac;
 mod platform;
