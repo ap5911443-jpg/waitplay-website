@@ -29,7 +29,7 @@ independent.
   Terminal lookup: process-tree walk to the nearest regular `NSRunningApplication`. Standard Edit/Window menus so Cmd+C/V/A work in
   the web pages (needed to paste into sign-in forms).
 * `mac/app.rs`: tao event loop (Accessory activation policy), `tray-icon` status item, wry/WKWebView windows, `global-hotkey`.
-* `placement.rs`: pure geometry for the three widget corners and the stacked entertainment window; unit tested.
+* `placement.rs`: pure geometry for the widget corners (and the Windows top-centre notch) and the centred 70% x 82% entertainment window; unit tested.
 * `mac/login_item.rs`: launch at login = one LaunchAgent plist (`com.waitplay.app`), rewritten when the app moves.
 * `mac/integrations.rs`: idempotent install/remove of Claude Code hooks in `~/.claude/settings.json` (keeps every other setting,
   never overwrites a file it cannot parse, writes a one-time `.waitplay-backup`).

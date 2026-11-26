@@ -38,10 +38,6 @@ pub struct Screen {
     pub scale: f64,
 }
 
-/// Gap between a window and the edge of the usable area.
-pub const EDGE_MARGIN: f64 = 8.0;
-/// Gap between the widget and the entertainment window that shares its corner.
-pub const STACK_GAP: f64 = 8.0;
 
 /// Top-left corner of a `size` window in the chosen corner (or, for the notch, the middle of the top edge) of `work`.
 pub fn corner_origin(work: LRect, size: (f64, f64), pos: WidgetPosition, margin: f64) -> (f64, f64) {
@@ -61,24 +57,12 @@ pub fn corner_origin(work: LRect, size: (f64, f64), pos: WidgetPosition, margin:
     (clamp(x, work.x, work.right() - size.0), clamp(y, work.y, work.bottom() - size.1))
 }
 
-/// The entertainment window: compact, in the same corner as the widget, stacked clear of it (below a top widget, above a bottom
-/// one). `widget_block` is the height the widget takes (0 when hidden).
-pub fn companion_rect(work: LRect, desired: (f64, f64), pos: WidgetPosition, widget_block: f64) -> LRect {
-    let block = if widget_block > 0.0 { widget_block + STACK_GAP } else { 0.0 };
-    let max_w = (work.w - 2.0 * EDGE_MARGIN).max(1.0);
-    let max_h = (work.h - 2.0 * EDGE_MARGIN - block).max(1.0);
-    let w = desired.0.min(max_w);
-    let h = desired.1.min(max_h);
-    let right = work.right() - EDGE_MARGIN - w;
-    let left = work.x + EDGE_MARGIN;
-    let centre = work.x + (work.w - w) / 2.0;
-    let (x, y) = match pos {
-        WidgetPosition::TopRight => (right, work.y + EDGE_MARGIN + block),
-        WidgetPosition::TopCenter => (centre, work.y + EDGE_MARGIN + block),
-        WidgetPosition::BottomRight => (right, work.bottom() - EDGE_MARGIN - block - h),
-        WidgetPosition::BottomLeft => (left, work.bottom() - EDGE_MARGIN - block - h),
-    };
-    LRect::new(x, y, w, h)
+/// The entertainment window: centred on the display under the pointer, 70% x 82% of the usable area (at least 480 x 420, at most
+/// 1400 x 950, never larger than the area), the same on macOS and Windows. The widget floats above it.
+pub fn centered_companion_rect(work: LRect) -> LRect {
+    let w = (work.w * 0.70).clamp(480.0, 1400.0).min(work.w);
+    let h = (work.h * 0.82).clamp(420.0, 950.0).min(work.h);
+    LRect::new(work.x + (work.w - w) / 2.0, work.y + (work.h - h) / 2.0, w, h)
 }
 
 /// The screen a point is on; the first screen (the primary display) when it is on none (a display was unplugged).
@@ -112,12 +96,6 @@ mod tests {
     }
 
     #[test]
-    fn companion_centres_under_a_top_centre_widget() {
-        let r = companion_rect(WORK, (420.0, 700.0), WidgetPosition::TopCenter, 56.0);
-        assert_eq!((r.x, r.y), ((1440.0 - 420.0) / 2.0, 25.0 + 8.0 + 56.0 + STACK_GAP));
-    }
-
-    #[test]
     fn secondary_display_with_an_offset_origin() {
         // a display left of the primary: negative x; one above: negative y
         let work = LRect::new(-1920.0, -200.0, 1920.0, 1080.0);
@@ -132,22 +110,16 @@ mod tests {
     }
 
     #[test]
-    fn companion_stacks_clear_of_the_widget() {
-        let top = companion_rect(WORK, (420.0, 760.0), WidgetPosition::TopRight, 56.0);
-        assert_eq!((top.x, top.y), (1440.0 - 8.0 - 420.0, 25.0 + 8.0 + 56.0 + STACK_GAP));
-        assert!(top.bottom() <= WORK.bottom() - EDGE_MARGIN + 1e-9, "shrunk to fit: {:?}", top);
-        let bottom = companion_rect(WORK, (420.0, 600.0), WidgetPosition::BottomLeft, 56.0);
-        assert_eq!(bottom.x, 8.0);
-        assert!((bottom.bottom() - (WORK.bottom() - EDGE_MARGIN - 56.0 - STACK_GAP)).abs() < 1e-9);
-        let alone = companion_rect(WORK, (420.0, 600.0), WidgetPosition::BottomRight, 0.0);
-        assert!((alone.bottom() - (WORK.bottom() - EDGE_MARGIN)).abs() < 1e-9, "no widget, no gap");
-    }
-
-    #[test]
-    fn companion_never_leaves_a_small_screen() {
+    fn companion_is_centred_70_by_82_percent_and_never_leaves_the_screen() {
+        let r = centered_companion_rect(WORK);
+        let near = |a: f64, b: f64| (a - b).abs() < 1e-6;
+        assert!(near(r.w, 1008.0) && near(r.h, 656.0), "{:?}", r);
+        assert!(near(r.x, 216.0) && near(r.y, 25.0 + 72.0), "{:?}", r);
         let small = LRect::new(0.0, 0.0, 300.0, 400.0);
-        let r = companion_rect(small, (420.0, 760.0), WidgetPosition::TopRight, 56.0);
+        let r = centered_companion_rect(small);
         assert!(r.x >= 0.0 && r.y >= 0.0 && r.right() <= 300.0 && r.bottom() <= 400.0, "{:?}", r);
+        let huge = centered_companion_rect(LRect::new(0.0, 0.0, 5120.0, 2880.0));
+        assert_eq!((huge.w, huge.h), (1400.0, 950.0), "capped like on Windows");
     }
 
     #[test]

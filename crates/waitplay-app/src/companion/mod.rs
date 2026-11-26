@@ -149,6 +149,9 @@ impl Env for UiEnv {
         }
         self.cache.1
     }
+    fn is_minimized(&self, id: WindowId) -> bool {
+        platform::is_minimized(id)
+    }
 }
 
 // ── the app ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -588,18 +591,16 @@ impl App {
 
 // ── start-up ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-/// Compact portrait window (a phone-sized reel column) in the widget's corner of the display under the pointer.
+/// Centred on the display under the pointer, 70% x 82% of its usable area, exactly like on Windows.
 #[cfg(target_os = "macos")]
-fn place_on_macos(window: &Window, settings: &waitplay_core::settings::Settings) {
+fn place_on_macos(window: &Window) {
     use crate::placement;
     use tao::dpi::{LogicalPosition, LogicalSize};
     const TITLE_BAR: f64 = 28.0;
-    const WIDGET_BLOCK: f64 = 68.0;
     let screens = platform::screens();
     let idx = platform::cursor_logical().and_then(|(x, y)| placement::screen_at(&screens, x, y)).unwrap_or(0);
     let Some(screen) = screens.get(idx) else { return };
-    let widget = if settings.show_widget { WIDGET_BLOCK } else { 0.0 };
-    let r = placement::companion_rect(screen.work, (440.0, 800.0), settings.widget_position, widget);
+    let r = placement::centered_companion_rect(screen.work);
     window.set_inner_size(LogicalSize::new(r.w, (r.h - TITLE_BAR).max(MIN_HEIGHT_DIP)));
     window.set_outer_position(LogicalPosition::new(r.x, r.y));
 }
@@ -670,7 +671,7 @@ pub fn run(opts: Options, _guard: Guard) -> Result<(), String> {
     let scale = window.scale_factor();
     window.set_min_inner_size(Some(PhysicalSize::new((MIN_WIDTH_DIP * scale) as u32, (MIN_HEIGHT_DIP * scale) as u32)));
     #[cfg(target_os = "macos")]
-    place_on_macos(&window, &user_settings);
+    place_on_macos(&window);
     #[cfg(not(target_os = "macos"))]
     {
         // Centred, large enough that the site's desktop layout fits without scrolling sideways

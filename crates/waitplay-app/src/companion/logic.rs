@@ -71,6 +71,8 @@ pub trait Env {
     fn now(&self) -> Instant;
     fn foreground(&self) -> WindowId;
     fn is_waitplay_window(&mut self, id: WindowId) -> bool;
+    /// The window is minimized (iconic).
+    fn is_minimized(&self, id: WindowId) -> bool;
 }
 
 pub struct Core {
@@ -200,6 +202,18 @@ impl Core {
         }
 
         let fg = env.foreground();
+        // The terminal that owns the window was minimized: that is "away" no matter which window Windows hands the focus to next
+        // (often this very window or the widget, which would otherwise read as "the user is here"). It comes back by itself when
+        // the terminal is restored and in front again, as long as the agent is still working.
+        if let Some(term) = self.owner_id.as_ref().and_then(|id| self.sessions.get(&key(id))).map(|s| s.hwnd).filter(|h| *h != NO_WINDOW) {
+            if env.is_minimized(term) {
+                out.push(Action::SetInputTarget(NO_WINDOW));
+                if self.away_for(env, AWAY_GRACE) && !self.hidden_away {
+                    self.hide_while_away(&mut out);
+                }
+                return out;
+            }
+        }
         if fg == NO_WINDOW {
             // locked screen etc.
             self.away_since = None;
@@ -479,6 +493,7 @@ mod tests {
         t: Instant,
         fg: WindowId,
         wp_windows: Vec<WindowId>,
+        minimized: Vec<WindowId>,
     }
     impl Env for TestEnv {
         fn now(&self) -> Instant {
@@ -489,6 +504,9 @@ mod tests {
         }
         fn is_waitplay_window(&mut self, id: WindowId) -> bool {
             self.wp_windows.contains(&id)
+        }
+        fn is_minimized(&self, id: WindowId) -> bool {
+            self.minimized.contains(&id)
         }
     }
 
@@ -502,7 +520,7 @@ mod tests {
     }
 
     fn env(fg: WindowId, t: Instant) -> TestEnv {
-        TestEnv { t, fg, wp_windows: vec![ME] }
+        TestEnv { t, fg, wp_windows: vec![ME], minimized: vec![] }
     }
 
     fn core_with(sessions: &[(&str, WindowId)]) -> Core {
@@ -740,10 +758,29 @@ mod tests {
         let mut c = core_with(&[("omp-session", TERM_A)]);
         let t0 = Instant::now();
         c.tick(&mut env(TERM_A, t0), &name);
-        let mut e = TestEnv { t: t0 + Duration::from_secs(5), fg: 55, wp_windows: vec![ME, 55] };
+        let mut e = TestEnv { t: t0 + Duration::from_secs(5), fg: 55, wp_windows: vec![ME, 55], minimized: vec![] };
         let acts = c.tick(&mut e, &name);
         assert!(acts.is_empty());
         assert!(!c.hidden_away);
+    }
+
+    #[test]
+    fn minimizing_the_terminal_hides_the_window_and_restoring_it_brings_it_back_while_the_agent_works() {
+        let mut c = core_with(&[("omp-session", TERM_A)]);
+        let t0 = Instant::now();
+        c.tick(&mut env(TERM_A, t0), &name);
+        assert!(!c.hidden_away);
+        // minimizing hands the focus to a WaitPlay window (the entertainment window or the widget): that must not read as "the user is here"
+        let minimized = |t: Instant| TestEnv { t, fg: ME, wp_windows: vec![ME], minimized: vec![TERM_A] };
+        c.tick(&mut minimized(t0 + Duration::from_millis(100)), &name);
+        assert!(!c.hidden_away, "short grace first");
+        let acts = c.tick(&mut minimized(t0 + Duration::from_secs(2)), &name);
+        assert!(acts.contains(&Action::HideWhileAway) && c.hidden_away);
+        // still minimized: stays hidden, no flicker
+        assert!(!c.tick(&mut minimized(t0 + Duration::from_secs(5)), &name).contains(&Action::Show { activate: false }));
+        // restored and in front, the agent still working: back again
+        let acts = c.tick(&mut env(TERM_A, t0 + Duration::from_secs(8)), &name);
+        assert!(acts.contains(&Action::Show { activate: false }) && !c.hidden_away);
     }
 
     #[test]
