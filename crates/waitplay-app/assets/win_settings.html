@@ -116,6 +116,28 @@ select {
 .banner.warning { border-left-color: var(--orange); }
 .banner .bmsg { font-weight: 500; } .banner .bhint { font-size: 12px; color: var(--label2); }
 
+/* sessions, sounds, insights */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { background: var(--card); border: .5px solid var(--sep); border-radius: 10px; padding: 9px 12px; }
+.stat .sv { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.stat .sl { font-size: 11.5px; color: var(--label2); }
+.chart { padding: 10px 14px 12px; }
+.chart svg { width: 100%; height: 120px; display: block; }
+.chart .axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--label2); margin-top: 2px; }
+.legend { display: flex; gap: 14px; font-size: 11.5px; color: var(--label2); margin-top: 6px; }
+.legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; vertical-align: -.5px; }
+.hbar { display: grid; grid-template-columns: 110px 1fr auto; align-items: center; gap: 10px; padding: 6px 14px; }
+.hbar + .hbar { border-top: .5px solid var(--sep); }
+.hbar .track { height: 8px; border-radius: 4px; background: var(--pill-bg); overflow: hidden; }
+.hbar .fill { height: 100%; border-radius: 4px; background: var(--accent); }
+.hbar .hv { font-size: 12px; color: var(--label2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.empty { padding: 18px 14px; color: var(--label2); text-align: center; }
+.srow2 { display: flex; align-items: center; gap: 10px; padding: 9px 14px; }
+.srow2 + .srow2 { border-top: .5px solid var(--sep); }
+.sdot { width: 9px; height: 9px; border-radius: 50%; background: var(--grey); flex: none; }
+.sdot.working { background: var(--green); } .sdot.waiting { background: var(--orange); } .sdot.failed { background: var(--red); }
+input[type=range] { width: 160px; accent-color: var(--accent); }
+
 /* widget picker */
 .picker { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 12px 14px 14px; }
 .card { border: 0; background: none; padding: 0; text-align: center; }
@@ -354,12 +376,13 @@ function paneEntertainment() {
   const finHelp = h("div", { class: "rdesc" });
   reg(() => { fin.update(); setText(finHelp, settings().onFinish === "close" ? "Close frees memory." : "Hide keeps the page ready."); });
   const open = h("button", { class: "btn primary", type: "button", onclick: () => send({ t: "openEntertainment" }) }, "Open now");
+  const hide = h("button", { class: "btn", type: "button", onclick: () => send({ t: "hideEntertainment" }) }, "Hide");
   return h("div", { class: "stack" },
     section("Platforms", group(rows), h("div", { class: "note" }, "You stay signed in between launches.")),
     group(
       h("div", { class: "row" }, h("div", { class: "grow rtitle" }, "Preferred platform"), sel),
       h("div", { class: "row" }, h("div", { class: "grow" }, h("div", { class: "rtitle" }, "When the agent finishes"), finHelp), fin.el),
-      h("div", { class: "row" }, h("div", { class: "grow rtitle" }, "Open entertainment now"), open)));
+      h("div", { class: "row" }, h("div", { class: "grow rtitle" }, "Open entertainment now"), h("div", { class: "actions" }, hide, open))));
 }
 
 function agentRow() {
@@ -407,6 +430,8 @@ function paneAgents() {
 
 const POSITIONS = [["top-center", "Top center"], ["top-right", "Top right"], ["bottom-right", "Bottom right"], ["bottom-left", "Bottom left"]];
 function paneWidget() {
+  const mstyle = segmented("Animation style", [["subtle", "Subtle"], ["playful", "Playful"]], () => settings().mascotIntensity, v => set({ mascotIntensity: v }));
+  reg(mstyle.update);
   const enable = switchRow("Enable widget", "Show a small status pill above other windows.", "showWidget");
   const picker = h("div", { class: "picker", role: "radiogroup", "aria-label": "Widget position" });
   const cards = POSITIONS.map(([val, text], i) => {
@@ -424,8 +449,186 @@ function paneWidget() {
   return h("div", { class: "stack" },
     group(enable),
     section("Position", group(h("div", {}, picker))),
-    group(switchRow("Compact", "A smaller pill with just the status.", "widgetCompact"), switchRow("Show status text", null, "widgetShowStatus")));
+    group(switchRow("Compact", "A smaller pill with just the status.", "widgetCompact"), switchRow("Show status text", null, "widgetShowStatus")),
+    section("Companion", group(
+      switchRow("Show the animated companion", "A small character in the island that wakes up, works, celebrates and sleeps with your agents.", "mascot"),
+      h("div", { class: "row" }, h("div", { class: "grow rtitle" }, "Animation style"), mstyle.el),
+      switchRow("Idle animations", "Floating, blinking and napping while nothing is running.", "mascotIdle"),
+      switchRow("Eyes follow the pointer", "Only while the pointer is over the island.", "mascotPointer"),
+      switchRow("Reduce motion", "Show the companion without movement. The system setting is always respected.", "reduceMotion"))));
 }
+
+/* sessions */
+const AGENT_NAMES = { "claude-code": "Claude Code", opencode: "OpenCode", codex: "Codex", omp: "OMP", cline: "Cline", cursor: "Cursor", antigravity: "Antigravity" };
+const agentName = id => AGENT_NAMES[id] || id;
+const ACT_TEXT = { working: "Working", waiting: "Waiting for you", done: "Completed", failed: "Error" };
+function fmtDur(ms) {
+  const s = Math.round(Math.max(0, ms || 0) / 1000);
+  if (s < 60) return s + "s";
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + "m " + (s % 60 ? (s % 60) + "s" : "").trim();
+  const hh = Math.floor(m / 60);
+  return hh + "h " + (m % 60) + "m";
+}
+let RECENT = null;
+window.wpRecent = d => { RECENT = d.sessions; render(); };
+function paneSessions() {
+  const list = h("div", { class: "group" });
+  const head = h("div", { class: "gtitle" });
+  reg(() => {
+    const rows = runtime().sessions || [];
+    const active = rows.filter(r => r.act === "working" || r.act === "waiting").length;
+    setText(head, active === 0 ? "No active sessions" : active === 1 ? "1 active session" : active + " active sessions");
+    list.textContent = "";
+    if (!rows.length) { list.append(h("div", { class: "empty" }, "No AI coding sessions right now. They appear here as soon as an agent starts working.")); return; }
+    for (const r of rows) {
+      const t = r.since && (r.act === "working" || r.act === "waiting") ? fmtDur(Date.now() - r.since) : (r.durMs ? fmtDur(r.durMs) : "");
+      list.append(h("div", { class: "srow2" }, h("span", { class: "sdot " + r.act }),
+        h("div", { class: "grow" }, h("div", { class: "rtitle" }, r.name), h("div", { class: "rdesc" }, r.terminal ? "Terminal: " + r.terminal : "")),
+        h("span", { class: "rdesc" }, ACT_TEXT[r.act] || ""), h("span", { class: "rtitle" }, t)));
+    }
+  });
+  const recentBox = h("div", { class: "group" });
+  reg(() => {
+    recentBox.textContent = "";
+    const rows = RECENT || [];
+    if (!rows.length) { recentBox.append(h("div", { class: "empty" }, "Finished sessions are listed here.")); return; }
+    for (const r of rows) {
+      const when = new Date(r.end).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+      recentBox.append(h("div", { class: "srow2" }, h("span", { class: "sdot " + (r.outcome === "failed" ? "failed" : "") }),
+        h("div", { class: "grow" }, h("div", { class: "rtitle" }, agentName(r.agent)), h("div", { class: "rdesc" }, when)),
+        h("span", { class: "rdesc" }, r.outcome === "completed" ? "Completed" : r.outcome === "failed" ? "Error" : "Stopped"), h("span", { class: "rtitle" }, fmtDur(r.end - r.start))));
+    }
+  });
+  return h("div", { class: "stack" }, banners(), h("div", {}, head, list), section("Recent", recentBox),
+    h("div", { class: "rdesc" }, "Each session is tracked on its own. One finishing never ends another, and the shared entertainment window stays open until the last one is done."));
+}
+
+/* sounds and notifications */
+const SOUND_LABELS = [["gentle", "Gentle success tone"], ["soft", "Soft notification"], ["chime", "Minimal digital chime"], ["retro", "Retro computer"], ["futuristic", "Futuristic completion"], ["classic", "Classic alert"]];
+const SOUND_EVENTS = [["completed", "An agent finishes", "Several finishing together play once."], ["allDone", "Every agent has finished", "Replaces the finish sound for the last one."], ["started", "An agent starts", null], ["error", "An agent hits an error", null], ["opened", "Entertainment opens", null]];
+function eventRow(key, title, desc) {
+  const sw = switchBtn(title, () => settings().soundEvents[key], v => set({ soundEvents: { [key]: v } }));
+  reg(sw.update);
+  return h("div", { class: "row" }, h("div", { class: "grow" }, h("div", { class: "rtitle" }, title), desc && h("div", { class: "rdesc" }, desc)), sw.el);
+}
+function paneSounds() {
+  const secs = segmented("Notification duration", [[3, "3 s"], [5, "5 s"], [8, "8 s"], [12, "12 s"]], () => settings().notificationSecs, v => set({ notificationSecs: v }));
+  reg(secs.update);
+  const vol = h("input", { type: "range", min: "0", max: "100", step: "5", "aria-label": "Volume" });
+  const volTxt = h("span", { class: "rdesc" });
+  vol.addEventListener("input", () => setText(volTxt, vol.value + "%"));
+  vol.addEventListener("change", () => set({ soundVolume: Number(vol.value) }));
+  const pick = h("select", { "aria-label": "Sound" });
+  pick.addEventListener("change", () => set({ soundName: pick.value }));
+  const custom = h("div", { class: "rdesc" });
+  const chooseBtn = h("button", { class: "btn", type: "button", onclick: () => send({ t: "chooseSound" }) }, "Choose file\u2026");
+  const removeBtn = h("button", { class: "btn", type: "button", onclick: () => send({ t: "removeSound" }) }, "Remove");
+  const preview = h("button", { class: "btn", type: "button", onclick: () => send({ t: "previewSound" }) }, "Preview");
+  const reset = h("button", { class: "btn", type: "button", onclick: () => { send({ t: "removeSound" }); set({ soundName: "gentle", soundVolume: 70, soundMuted: false, soundEvents: { started: false, completed: true, allDone: false, error: false, opened: false } }); } }, "Restore defaults");
+  reg(() => {
+    const cf = runtime().customSound || settings().soundCustomFile || "";
+    const opts = SOUND_LABELS.concat(cf ? [["custom", "Your sound"]] : []);
+    if (pick.options.length !== opts.length) { pick.textContent = ""; for (const [v, t] of opts) pick.append(h("option", { value: v }, t)); }
+    if (pick.value !== settings().soundName) pick.value = settings().soundName;
+    if (document.activeElement !== vol) vol.value = String(settings().soundVolume);
+    setText(volTxt, vol.value + "%");
+    setText(custom, cf ? "Your file: " + cf : "Use your own sound: a WAV file, up to 5 MB, on Windows.");
+    toggleHidden(removeBtn, !cf);
+  });
+  return h("div", { class: "stack" },
+    banners(),
+    section("Notifications", group(
+      switchRow("Show notifications", "Short messages under the island when agents start, finish or fail.", "notifications"),
+      h("div", { class: "row" }, h("div", { class: "grow rtitle" }, "Stay on screen for"), secs.el))),
+    section("Sounds", group(
+      switchRow("Mute all sounds", "Nothing plays while this is on. You can also mute from the island.", "soundMuted"),
+      h("div", { class: "row" }, h("div", { class: "grow rtitle" }, "Volume"), vol, volTxt),
+      h("div", { class: "row" }, h("div", { class: "grow rtitle" }, "Sound"), pick, preview),
+      h("div", { class: "row" }, h("div", { class: "grow" }, custom), chooseBtn, removeBtn),
+      h("div", { class: "row" }, h("div", { class: "grow rdesc" }, "Back to the gentle tone, 70% volume and finish-only sounds."), reset))),
+    section("Play a sound when", group(SOUND_EVENTS.map(([k, t, d]) => eventRow(k, t, d)))));
+}
+
+/* insights */
+let INS = null, insRange = "today";
+function requestInsights() { send({ t: "insights", range: insRange, tz: -new Date().getTimezoneOffset() }); }
+function statCard(label, get) {
+  const v = h("div", { class: "sv" }), l = h("div", { class: "sl" }, label);
+  reg(() => setText(v, INS ? get(INS) : "\u2013"));
+  return h("div", { class: "stat" }, v, l);
+}
+function dayChart(title, key, colors, legend) {
+  const box = h("div", { class: "group chart" }), axis = h("div", { class: "axis" });
+  const draw = () => {
+    box.textContent = "";
+    const days = INS ? INS.days.slice(-60) : [];
+    const sv = document.createElementNS(SVGNS, "svg"); sv.setAttribute("viewBox", "0 0 300 100"); sv.setAttribute("preserveAspectRatio", "none"); sv.setAttribute("role", "img"); sv.setAttribute("aria-label", title);
+    const totals = days.map(d => key === "time" ? d.workMs + d.waitMs : d.sessions), max = Math.max(1, ...totals);
+    const bw = 300 / Math.max(days.length, 1);
+    days.forEach((d, i) => {
+      const parts = key === "time" ? [[d.workMs, colors[0]], [d.waitMs, colors[1]]] : [[d.sessions, colors[0]]];
+      let y = 100;
+      for (const [val, col] of parts) {
+        const hh = val / max * 96; if (hh <= 0) continue;
+        const r = document.createElementNS(SVGNS, "rect");
+        r.setAttribute("x", (i * bw + bw * .15).toFixed(2)); r.setAttribute("width", (bw * .7).toFixed(2)); r.setAttribute("y", (y - hh).toFixed(2)); r.setAttribute("height", hh.toFixed(2)); r.setAttribute("rx", "1.5"); r.setAttribute("fill", col);
+        const tt = document.createElementNS(SVGNS, "title"); tt.textContent = d.day + ": " + (key === "time" ? "working " + fmtDur(d.workMs) + ", waiting " + fmtDur(d.waitMs) : d.sessions + " sessions");
+        r.append(tt); sv.append(r); y -= hh;
+      }
+    });
+    const base = document.createElementNS(SVGNS, "line"); base.setAttribute("x1", "0"); base.setAttribute("x2", "300"); base.setAttribute("y1", "99.5"); base.setAttribute("y2", "99.5"); base.setAttribute("stroke", "currentColor"); base.setAttribute("opacity", ".15"); sv.append(base);
+    axis.textContent = ""; if (days.length) { axis.append(h("span", {}, days[0].day), h("span", {}, days[days.length - 1].day)); }
+    box.append(sv, axis);
+    if (legend) box.append(h("div", { class: "legend" }, legend.map(([c, t]) => h("span", {}, h("i", { style: "background:" + c }), t))));
+  };
+  reg(draw);
+  return section(title, box);
+}
+function barList(title, get, label) {
+  const box = h("div", { class: "group" });
+  reg(() => {
+    box.textContent = "";
+    const rows = INS ? get(INS) : [];
+    if (!rows.length) { box.append(h("div", { class: "empty" }, "Nothing recorded in this period.")); return; }
+    const max = Math.max(1, ...rows.map(r => r.ms));
+    for (const r of rows) {
+      const f = h("div", { class: "fill" }); f.style.width = Math.max(2, r.ms / max * 100) + "%";
+      box.append(h("div", { class: "hbar" }, h("span", { class: "rtitle" }, label(r)), h("div", { class: "track" }, f), h("span", { class: "hv" }, r.n + (r.n === 1 ? " time \u00b7 " : " times \u00b7 ") + fmtDur(r.ms))));
+    }
+  });
+  return section(title, box);
+}
+const siteName = k => ({ instagram: "Instagram", x: "X", youtube: "YouTube" }[k] || k);
+function paneInsights() {
+  const range = segmented("Period", [["today", "Today"], ["7d", "7 days"], ["30d", "30 days"], ["all", "All time"]], () => insRange, v => { insRange = v; render(); requestInsights(); });
+  reg(range.update);
+  const empty = h("div", { class: "group" }, h("div", { class: "empty" }, "No sessions recorded for this period yet. They appear here after an agent finishes a task."));
+  reg(() => toggleHidden(empty, !!INS && INS.sessions + INS.entertainment.launches > 0));
+  return h("div", { class: "stack" },
+    h("div", { class: "row", style: "padding:0" }, h("div", { class: "grow rdesc" }, "Timings only, stored on this PC. No prompts, code or terminal text are ever recorded."), range.el),
+    empty,
+    section("Coding", h("div", { class: "stats" },
+      statCard("Sessions", d => String(d.sessions)),
+      statCard("Active time", d => fmtDur(d.workMs)),
+      statCard("Waiting for you", d => fmtDur(d.waitMs)),
+      statCard("Completed", d => String(d.completed)),
+      statCard("Average session", d => fmtDur(d.avgMs)),
+      statCard("Longest session", d => fmtDur(d.longestMs)))),
+    dayChart("Working and waiting per day", "time", ["#30b86a", "#ff9f0a"], [["#30b86a", "Working"], ["#ff9f0a", "Waiting for you"]]),
+    dayChart("Sessions per day", "count", ["#5e8bff"], null),
+    barList("Agents", d => d.agents.map(a => ({ n: a.sessions, ms: a.ms, agent: a.agent })), r => agentName(r.agent)),
+    section("Entertainment", h("div", { class: "stats" },
+      statCard("Time open", d => fmtDur(d.entertainment.totalMs)),
+      statCard("Automatic launches", d => String(d.entertainment.autoLaunches)),
+      statCard("Most used", d => d.entertainment.top ? siteName(d.entertainment.top) : "\u2013"),
+      statCard("Average visit", d => fmtDur(d.entertainment.avgMs)),
+      statCard("With an agent working", d => fmtDur(d.withEntertainmentMs)),
+      statCard("Launches", d => String(d.entertainment.launches)))),
+    barList("Platforms", d => d.entertainment.platforms.map(p => ({ n: p.count, ms: p.ms, site: p.site })), r => siteName(r.site)));
+}
+window.wpInsights = d => { INS = d; render(); };
+setInterval(() => { if (current === "insights" && !document.hidden) requestInsights(); }, 10000);
 
 /* shortcuts */
 const MODS = ["Control", "Alt", "Shift", "Super"];
@@ -566,13 +769,19 @@ const ICONS = {
   widget: ["M2.5 5h11a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z", "M4.5 8h.01"],
   keys: ["M2.5 4.5h11a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1z", "M4.5 7h.01M8 7h.01M11.5 7h.01M5.5 9.5h5"],
   perm: ["M8 2l5 2v4c0 3-2.2 5-5 6-2.8-1-5-3-5-6V4z", "M5.8 8l1.5 1.5L10.3 6.5"],
+  sound: ["M2.5 6v4h2.5L8.5 13V3L5 6z", "M11 5.5c1 .7 1.5 1.5 1.5 2.5s-.5 1.8-1.5 2.5"],
+  insights: ["M3 13V8", "M7 13V4", "M11 13V6.5", "M2 13.5h12"],
+  sessions: ["M3 4h10", "M3 8h10", "M3 12h6", "M12 11l1.5 1.5"],
   about: ["M8 7.2v4", "M8 4.8h.01", "M8 2.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11z"]
 };
 const PANES = [
   ["general", "General", "general", "--ic-general", paneGeneral],
+  ["sessions", "Sessions", "sessions", "--ic-perm", paneSessions],
   ["entertainment", "Entertainment", "ent", "--ic-ent", paneEntertainment],
   ["agents", "AI Agents", "agents", "--ic-agents", paneAgents],
   ["widget", "Widget", "widget", "--ic-widget", paneWidget],
+  ["sounds", "Sounds & Alerts", "sound", "--ic-ent", paneSounds],
+  ["insights", "Insights", "insights", "--ic-agents", paneInsights],
   ["shortcuts", "Shortcuts", "keys", "--ic-keys", paneShortcuts],
   ["permissions", "Permissions", "perm", "--ic-perm", panePermissions],
   ["about", "About", "about", "--ic-about", paneAbout]
@@ -589,6 +798,8 @@ function selectPane(id, focus) {
     if (on) setText(document.getElementById("title"), p[1]);
   }
   document.getElementById("scroll").scrollTop = 0;
+  if (id === "insights") requestInsights();
+  if (id === "sessions") send({ t: "recent" });
   if (focus) tabEls[id].focus();
 }
 
@@ -613,16 +824,40 @@ window.wpSettings = { update(state) { S = state; render(); } };
 buildShell();
 
 if (!window.ipc) {
+  const demoInsights = range => {
+    const n = { today: 1, "7d": 7, "30d": 30, all: 45 }[range], days = [];
+    const base = Date.UTC(2025, 2, 1);
+    for (let i = n - 1; i >= 0; i--) {
+      const sess = (i * 7 + 3) % 6 + (i % 3 === 0 ? 2 : 0), work = sess * 11 * 60000, wait = sess * 3.5 * 60000;
+      days.push({ day: new Date(base + (45 - i) * 86400000).toISOString().slice(0, 10), sessions: sess, workMs: work, waitMs: wait });
+    }
+    const sum = k => days.reduce((a, d) => a + d[k], 0), ses = sum("sessions");
+    return { range, sessions: ses, completed: ses - 1, failed: 1, abandoned: 0, workMs: sum("workMs"), waitMs: sum("waitMs"), totalMs: sum("workMs") + sum("waitMs"), avgMs: 14.5 * 60000, longestMs: 52 * 60000, withEntertainmentMs: sum("workMs") * .7,
+      entertainment: { totalMs: sum("workMs") * .7, launches: Math.round(ses * .6), autoLaunches: Math.round(ses * .55), avgMs: 9 * 60000, top: "youtube", platforms: [{ site: "youtube", count: Math.round(ses * .35), ms: sum("workMs") * .4 }, { site: "instagram", count: Math.round(ses * .2), ms: sum("workMs") * .25 }, { site: "x", count: Math.round(ses * .05), ms: sum("workMs") * .05 }] },
+      agents: [{ agent: "claude-code", sessions: Math.round(ses * .6), ms: sum("workMs") * .6 }, { agent: "cursor", sessions: Math.round(ses * .25), ms: sum("workMs") * .25 }, { agent: "codex", sessions: Math.round(ses * .15), ms: sum("workMs") * .15 }], days };
+  };
+  requestInsights = () => window.wpInsights(demoInsights(insRange));
+}
+
+if (!window.ipc) {
   // Demo state for design review in a plain browser; never runs inside the app.
   window.wpSettings.update({
     settings: {
       launchAtLogin: true, autoStartAutomation: false, showWidget: true, showDockIcon: false, appearance: "system",
       widgetPosition: "bottom-right", widgetCompact: false, widgetShowStatus: true,
+      notifications: true, notificationSecs: 5, soundMuted: false, soundVolume: 70, soundName: "gentle", soundCustomFile: "",
+      soundEvents: { started: false, completed: true, allDone: false, error: false, opened: false },
+      mascot: true, mascotIntensity: "subtle", mascotIdle: true, mascotPointer: true, reduceMotion: false,
       platforms: { instagram: true, x: true, youtube: false }, preferredPlatform: "instagram", onFinish: "hide",
       shortcuts: { toggleAutomation: "Control+Alt+KeyW", toggleWidget: "Super+Shift+Digit1" }
     },
     runtime: {
       enabled: true, status: "working", bridge: { connected: true },
+      sessions: [
+        { id: "a", name: "Claude Code", act: "working", since: Date.now() - 272000, terminal: "Windows Terminal" },
+        { id: "b", name: "Cursor", act: "waiting", since: Date.now() - 138000, terminal: "Cursor" },
+        { id: "c", name: "OpenCode", act: "done", durMs: 95000, terminal: "PowerShell" }
+      ], entertainment: { open: true }, customSound: "",
       errors: [
         { id: "e1", severity: "warning", message: "Accessibility access is missing.", hint: "Open the Permissions pane to fix it." },
         { id: "e2", severity: "error", message: "Couldn't start the local bridge.", hint: "" }
@@ -644,6 +879,11 @@ if (!window.ipc) {
       update: { state: "upToDate", detail: "" }
     }
   });
+  window.wpRecent({ sessions: [
+    { agent: "claude-code", start: Date.now() - 3600000, end: Date.now() - 3000000, workMs: 480000, waitMs: 120000, outcome: "completed" },
+    { agent: "cursor", start: Date.now() - 9000000, end: Date.now() - 8700000, workMs: 240000, waitMs: 60000, outcome: "failed" },
+    { agent: "codex", start: Date.now() - 90000000, end: Date.now() - 89400000, workMs: 500000, waitMs: 100000, outcome: "stopped" }
+  ] });
 }
 send({ t: "ready" });
 </script>

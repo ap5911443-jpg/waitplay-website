@@ -37,6 +37,8 @@ const WEBSITE: &str = "https://github.com/ap5911443-jpg/waitplay-website";
 const SUPPORT: &str = "https://github.com/ap5911443-jpg/waitplay-website/issues";
 const SETTINGS_HTML: &str = include_str!("../../assets/settings.html");
 const WIDGET_HTML: &str = include_str!("../../assets/mac_widget.html");
+/// The companion character, spliced into the page at its marker.
+const MASCOT_JS: &str = include_str!("../../assets/mascot.js");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const BUILD: &str = match option_env!("WAITPLAY_BUILD") {
     Some(b) => b,
@@ -667,6 +669,7 @@ impl App {
             "entOpen": self.rt.entertainment.is_some(),
             "toast": toast,
             "muted": self.settings.sound_muted,
+            "mascot": { "on": self.settings.mascot, "intensity": self.settings.mascot_intensity.as_str(), "idle": self.settings.mascot_idle, "pointer": self.settings.mascot_pointer, "reduce": self.settings.reduce_motion },
         })
     }
 
@@ -835,7 +838,7 @@ impl App {
         let proxy = self.proxy.clone();
         let webview = WebViewBuilder::new()
             .with_transparent(true)
-            .with_html(WIDGET_HTML)
+            .with_html(WIDGET_HTML.replace("/*@MASCOT@*/", MASCOT_JS))
             .with_accept_first_mouse(true)
             .with_ipc_handler(move |req| {
                 let _ = proxy.send_event(Ev::Ipc(Target::Widget, req.into_body()));

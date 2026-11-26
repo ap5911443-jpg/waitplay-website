@@ -92,6 +92,13 @@ and `x86_64-apple-darwin`, signs when the `APPLE_*` secrets exist, and attaches 
   platform was open); no prompts, code or terminal text. Settings > Insights shows today, 7 days, 30 days or all time. "Waiting for
   you" is the time an agent reported it was waiting for input. Work still running when the app quits is recorded as abandoned.
 
+* **Companion.** A small original character (`assets/mascot.js`, inline SVG + CSS transforms, no images) lives in the island and shows
+  the real state: it sleeps when nothing runs, wakes with a bounce when an agent starts, works with focused eyes (glances, a keyboard
+  now and then), tilts with a question mark when an agent needs you, cheers with sparkles when one finishes (then goes back to work if
+  others are still running) and looks worried on an error. Settings > Widget > Companion: on/off, Subtle/Playful, idle animations,
+  pointer eyes, reduce motion (the system setting is always honoured). The same page code, notifications, sounds and insights run on
+  Windows too (WAV only for custom sounds there). The character only draws state; detection stays in the app.
+
 ## Known limits
 
 * Automatic updates are not implemented (the About pane says so).

@@ -254,7 +254,9 @@ const initial = () => ({
   ent: { site: 'instagram', visible: false, opened: false, dismissed: false },
   sessions: [],
   settings: { launchAtLogin: true, autoStartAutomation: true, showWidget: true, showDockIcon: false, appearance: 'system', widgetPosition: DEFAULT_POS, widgetCompact: false, widgetShowStatus: true,
-    platforms: { instagram: true, x: true, youtube: true }, preferredPlatform: 'instagram', onFinish: 'hide', shortcuts: { toggleAutomation: 'Control+Alt+KeyW', toggleWidget: 'Control+Alt+KeyH' } },
+    platforms: { instagram: true, x: true, youtube: true }, preferredPlatform: 'instagram', onFinish: 'hide', shortcuts: { toggleAutomation: 'Control+Alt+KeyW', toggleWidget: 'Control+Alt+KeyH' },
+    notifications: true, notificationSecs: 5, soundMuted: false, soundVolume: 70, soundName: 'gentle', soundCustomFile: '', soundEvents: { started: false, completed: true, allDone: false, error: false, opened: false },
+    mascot: true, mascotIntensity: 'subtle', mascotIdle: true, mascotPointer: true, reduceMotion: false },
   integrations: { 'claude-code': 'configured', codex: 'configured', opencode: 'notConfigured', omp: 'notConfigured', cline: 'notConfigured', cursor: 'missing' },
   account: { state: 'signedOut', configured: true },
   update: { state: 'upToDate', detail: '' }
@@ -293,7 +295,8 @@ function widgetState(){
     enabled: S.enabled, compact: S.settings.widgetCompact, showStatus: S.settings.widgetShowStatus, corner: S.settings.widgetPosition,
     notch: !IS_WIN && S.settings.widgetPosition === 'top-center' ? { w: 190, h: 34 } : null,
     sessionList: S.sessions.map(s => ({ id: s.agent + (s.terminal || ''), name: AGENT_NAMES[s.agent], act: s.activity === 'idle' ? 'done' : s.activity, since: s.activity === 'idle' ? null : s.since, durMs: s.activity === 'idle' ? (s.endedAt || Date.now()) - s.since : null, terminal: s.terminal })),
-    ent: entLine(), entOpen: !!S.ent.visible, toast: S.toast || null, muted: !!S.muted };
+    ent: entLine(), entOpen: !!S.ent.visible, toast: S.toast || null, muted: !!S.settings.soundMuted || !!S.muted,
+    mascot: { on: S.settings.mascot, intensity: S.settings.mascotIntensity, idle: S.settings.mascotIdle, pointer: S.settings.mascotPointer, reduce: S.settings.reduceMotion } };
 }
 let toastN = 0, toastT = 0, peak = 0;
 function notify(kind, title, body){ S.toast = { id: ++toastN, kind, title, body, secs: 5 }; clearTimeout(toastT); toastT = setTimeout(() => { S.toast = null; render(); }, 5000); }
@@ -532,7 +535,7 @@ function onWidget(m, d){
   else if (m.t === 'toggle') toggleAutomation();
   else if (m.t === 'openEntertainment') { S.ent.dismissed = false; openEnt(true); }
   else if (m.t === 'hideEntertainment') closeEnt(true);
-  else if (m.t === 'toggleMute') { S.muted = !S.muted; render(); }
+  else if (m.t === 'toggleMute') { S.settings.soundMuted = !S.settings.soundMuted; render(); pushSettings(); }
   else if (m.t === 'dismissToast') { S.toast = null; render(); }
   else if (m.t === 'openSettings') openWin('settings');
   else if (m.t === 'menu') { const r = widgetWin.getBoundingClientRect(), s = stage.getBoundingClientRect(); openMenu(Math.max(8, (r.left - s.left) / scale() + 20), Math.max(WORK.y + 4, (r.top - s.top) / scale() + (IS_WIN ? 70 : -300))); }
@@ -565,12 +568,20 @@ function runtimeState(){
       id === 'cursor' ? { state: 'notConfigured', detail: IS_WIN ? 'Cursor was not found on this PC.' : 'Not installed on this Mac.', canInstall: false, howTo: '' } :
       { state: s === 'configured' ? 'configured' : 'notConfigured', detail: s === 'configured' ? 'Vibe Play watches this agent while automation is on.' : 'The watcher is off.', canInstall: true, howTo: '' };
     return { id, name: AGENT_NAMES[id], detected: det, activity: r ? r.activity : 'idle', integration: mk }; });
-  return { enabled: S.enabled, status: st, bridge: { connected: S.bridgeOk },
+  return { enabled: S.enabled, status: st, bridge: { connected: S.bridgeOk }, sessions: widgetState().sessionList, entertainment: { open: !!S.ent.visible }, customSound: '',
     errors: S.bridgeOk ? [] : [{ id: 'bridge', severity: 'error', message: 'The local bridge is not running, so agent activity cannot be seen.', hint: 'Vibe Play starts it automatically; if this stays, restart Vibe Play.' }],
     agents, permissions: permissions(), shortcutErrors: { toggleAutomation: null, toggleWidget: null }, version: '0.2.0', build: 'demo',
     logPath: IS_WIN ? '%LOCALAPPDATA%\\WaitPlay\\logs\\waitplay.log' : '~/Library/Logs/WaitPlay/waitplay.log', website: '#', supportUrl: '#', update: S.update };
 }
 function pushSettings(){ call('settings', w => w.wpSettings.update({ settings: S.settings, runtime: runtimeState() })); }
+function demoInsights(range){
+  const n = { today: 1, '7d': 7, '30d': 30, all: 45 }[range] || 7, days = [], base = Date.UTC(2025, 2, 1);
+  for (let i = n - 1; i >= 0; i--) { const sess = (i * 7 + 3) % 6 + (i % 3 === 0 ? 2 : 0); days.push({ day: new Date(base + (45 - i) * 86400000).toISOString().slice(0, 10), sessions: sess, workMs: sess * 660000, waitMs: sess * 210000 }); }
+  const sum = k => days.reduce((a, d) => a + d[k], 0), ses = sum('sessions'), wk = sum('workMs');
+  return { range, sessions: ses, completed: ses - 1, failed: 1, abandoned: 0, workMs: wk, waitMs: sum('waitMs'), totalMs: wk + sum('waitMs'), avgMs: 870000, longestMs: 3120000, withEntertainmentMs: wk * .7,
+    entertainment: { totalMs: wk * .7, launches: Math.round(ses * .6), autoLaunches: Math.round(ses * .55), avgMs: 540000, top: 'youtube', platforms: [{ site: 'youtube', count: Math.round(ses * .35), ms: wk * .4 }, { site: 'instagram', count: Math.round(ses * .2), ms: wk * .25 }, { site: 'x', count: Math.round(ses * .05), ms: wk * .05 }] },
+    agents: [{ agent: 'claude-code', sessions: Math.round(ses * .6), ms: wk * .6 }, { agent: 'cursor', sessions: Math.round(ses * .25), ms: wk * .25 }, { agent: 'codex', sessions: Math.round(ses * .15), ms: wk * .15 }], days };
+}
 function onSettings(m, d){
   if (m.t === 'ready') pushSettings();
   else if (m.t === 'set') patchSettings(m.patch || {});
@@ -580,6 +591,9 @@ function onSettings(m, d){
   else if (m.t === 'installIntegration') { S.integrations[m.agent] = 'configured'; pushSettings(); }
   else if (m.t === 'removeIntegration') { S.integrations[m.agent] = 'notConfigured'; pushSettings(); }
   else if (m.t === 'checkUpdates') { S.update = { state: 'checking', detail: '' }; pushSettings(); later(900, () => { S.update = { state: 'upToDate', detail: '' }; pushSettings(); }); }
+  else if (m.t === 'hideEntertainment') closeEnt(true);
+  else if (m.t === 'insights') call('settings', w => w.wpInsights && w.wpInsights(demoInsights(m.range)));
+  else if (m.t === 'recent') call('settings', w => w.wpRecent && w.wpRecent({ sessions: [{ agent: 'claude-code', start: Date.now() - 3.2e6, end: Date.now() - 2.6e6, workMs: 5e5, waitMs: 6e4, outcome: 'completed' }, { agent: 'codex', start: Date.now() - 9e6, end: Date.now() - 8.7e6, workMs: 2.2e5, waitMs: 0, outcome: 'completed' }, { agent: 'cursor', start: Date.now() - 2e7, end: Date.now() - 1.95e7, workMs: 3e5, waitMs: 1e5, outcome: 'failed' }] }));
   else if (m.t === 'quit') quitApp();
   else if (m.t === 'drag') startDrag(setWin, d.at[0], d.at[1]);
 }
@@ -625,6 +639,7 @@ function patchSettings(p){
     if (k === 'platforms') { const next = Object.assign({}, s.platforms, p.platforms); if (SITES.some(([x]) => next[x])) s.platforms = next; if (!s.platforms[s.preferredPlatform]) s.preferredPlatform = SITES.find(([x]) => s.platforms[x])[0]; }
     else if (k === 'preferredPlatform') { if (s.platforms[p[k]]) s.preferredPlatform = p[k]; }
     else if (k === 'shortcuts') Object.assign(s.shortcuts, p.shortcuts);
+    else if (k === 'soundEvents') Object.assign(s.soundEvents, p.soundEvents);
     else if (k === 'widgetPosition') { if (POS.some(([x]) => x === p[k])) s.widgetPosition = p[k]; }
     else if (k in s) s[k] = p[k];
   }

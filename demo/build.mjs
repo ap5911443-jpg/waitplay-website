@@ -37,7 +37,8 @@ const js = (v) => JSON.stringify(v).replace(/<\/script/gi, "<\\/script").replace
 const template = read(join(here, "template.html"));
 
 function build(plat, dir, title) {
-  const pages = Object.fromEntries(Object.entries(pagesFor[plat]).map(([k, f]) => [k, read(join(assets, f))]));
+  const mascotJs = read(join(assets, "mascot.js")); // the app splices this into the widget pages at the marker
+  const pages = Object.fromEntries(Object.entries(pagesFor[plat]).map(([k, f]) => [k, read(join(assets, f)).replace("/*@MASCOT@*/", () => mascotJs)]));
   const out = template.replace("/*TITLE*/", () => title).replace("/*PLAT*/", () => js(plat)).replace("/*PAGES*/", () => js(pages)).replace("/*LOGOS*/", () => js(logos));
   mkdirSync(join(here, "dist", dir), { recursive: true });
   writeFileSync(join(here, "dist", dir, "index.html"), out);

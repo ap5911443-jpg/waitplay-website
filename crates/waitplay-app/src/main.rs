@@ -10,11 +10,9 @@ mod companion;
 mod logging;
 #[cfg(any(target_os = "macos", windows, test))]
 mod logo;
-// the Windows build only borrows the session `Act` type through the shared status code; the notification rules are for the macOS island
 #[cfg(any(target_os = "macos", windows, test))]
-#[cfg_attr(windows, allow(dead_code))]
 mod island;
-#[cfg(any(target_os = "macos", test))]
+#[cfg(any(target_os = "macos", windows, test))]
 mod sound;
 #[cfg(any(target_os = "macos", test))]
 mod mac;

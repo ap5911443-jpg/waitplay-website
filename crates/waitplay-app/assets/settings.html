@@ -431,6 +431,8 @@ function paneAgents() {
 
 const POSITIONS = [["top-center", "Notch"], ["top-right", "Top right"], ["bottom-right", "Bottom right"], ["bottom-left", "Bottom left"]];
 function paneWidget() {
+  const mstyle = segmented("Animation style", [["subtle", "Subtle"], ["playful", "Playful"]], () => settings().mascotIntensity, v => set({ mascotIntensity: v }));
+  reg(mstyle.update);
   const enable = switchRow("Enable widget", "Show a small status pill above other windows.", "showWidget");
   const picker = h("div", { class: "picker", role: "radiogroup", "aria-label": "Widget position" });
   const cards = POSITIONS.map(([val, text], i) => {
@@ -448,7 +450,13 @@ function paneWidget() {
   return h("div", { class: "stack" },
     group(enable),
     section("Position", group(h("div", {}, picker))),
-    group(switchRow("Compact", "A smaller pill with just the status.", "widgetCompact"), switchRow("Show status text", null, "widgetShowStatus")));
+    group(switchRow("Compact", "A smaller pill with just the status.", "widgetCompact"), switchRow("Show status text", null, "widgetShowStatus")),
+    section("Companion", group(
+      switchRow("Show the animated companion", "A small character in the island that wakes up, works, celebrates and sleeps with your agents.", "mascot"),
+      h("div", { class: "row" }, h("div", { class: "grow rtitle" }, "Animation style"), mstyle.el),
+      switchRow("Idle animations", "Floating, blinking and napping while nothing is running.", "mascotIdle"),
+      switchRow("Eyes follow the pointer", "Only while the pointer is over the island.", "mascotPointer"),
+      switchRow("Reduce motion", "Show the companion without movement. The system setting is always respected.", "reduceMotion"))));
 }
 
 /* sessions */
@@ -842,6 +850,7 @@ if (!window.ipc) {
       widgetPosition: "bottom-right", widgetCompact: false, widgetShowStatus: true,
       notifications: true, notificationSecs: 5, soundMuted: false, soundVolume: 70, soundName: "gentle", soundCustomFile: "",
       soundEvents: { started: false, completed: true, allDone: false, error: false, opened: false },
+      mascot: true, mascotIntensity: "subtle", mascotIdle: true, mascotPointer: true, reduceMotion: false,
       platforms: { instagram: true, x: true, youtube: false }, preferredPlatform: "instagram", onFinish: "hide",
       shortcuts: { toggleAutomation: "Control+Alt+KeyW", toggleWidget: "Super+Shift+Digit1" }
     },

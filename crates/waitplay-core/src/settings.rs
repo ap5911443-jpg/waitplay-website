@@ -30,6 +30,7 @@ string_enum!(WidgetPosition { TopRight => "top-right", TopCenter => "top-center"
 /// Where a fresh install puts the widget: at the top centre of the screen, which on a MacBook is the camera notch and on Windows the
 /// notch-style island. Existing installs keep the position they chose.
 pub const DEFAULT_WIDGET_POSITION: WidgetPosition = if cfg!(any(windows, target_os = "macos")) { WidgetPosition::TopCenter } else { WidgetPosition::BottomRight };
+string_enum!(MascotIntensity { Subtle => "subtle", Playful => "playful" } default Subtle);
 string_enum!(OnFinish { Hide => "hide", Close => "close" } default Hide);
 
 #[derive(Serialize, Clone, PartialEq, Eq, Debug)]
@@ -97,6 +98,13 @@ pub struct Settings {
     /// Internal: the app sets it when the user picks a file, the page cannot point it anywhere else.
     pub sound_custom_file: String,
     pub sound_events: SoundEvents,
+    /// The animated companion in the island: on/off, how lively, idle animations, pointer eyes, and a manual reduce-motion switch
+    /// (the system's reduce-motion setting is honoured by the page on top of this).
+    pub mascot: bool,
+    pub mascot_intensity: MascotIntensity,
+    pub mascot_idle: bool,
+    pub mascot_pointer: bool,
+    pub reduce_motion: bool,
 }
 
 /// Built-in sounds (synthesized by the app, so nothing to license): `classic` is the system alert sound on a Mac.
@@ -141,6 +149,11 @@ impl Default for Settings {
             sound_name: "gentle".into(),
             sound_custom_file: String::new(),
             sound_events: SoundEvents { started: false, completed: true, all_done: false, error: false, opened: false },
+            mascot: true,
+            mascot_intensity: MascotIntensity::Subtle,
+            mascot_idle: true,
+            mascot_pointer: true,
+            reduce_motion: false,
         }
     }
 }
@@ -206,6 +219,10 @@ impl Settings {
         boolean!("widgetShowStatus", self.widget_show_status);
         boolean!("notifications", self.notifications);
         boolean!("soundMuted", self.sound_muted);
+        boolean!("mascot", self.mascot);
+        boolean!("mascotIdle", self.mascot_idle);
+        boolean!("mascotPointer", self.mascot_pointer);
+        boolean!("reduceMotion", self.reduce_motion);
         for (key, ok) in [("notificationSecs", 2..=15u64), ("soundVolume", 0..=100u64)] {
             if let Some(v) = obj.get(key) {
                 match v.as_u64().filter(|n| ok.contains(n)) {
@@ -262,6 +279,7 @@ impl Settings {
         choice!("appearance", Appearance, self.appearance);
         choice!("widgetPosition", WidgetPosition, self.widget_position);
         choice!("onFinish", OnFinish, self.on_finish);
+        choice!("mascotIntensity", MascotIntensity, self.mascot_intensity);
 
         if let Some(v) = obj.get("preferredPlatform") {
             match v.as_str().filter(|s| SITE_KEYS.contains(s)) {
@@ -436,5 +454,22 @@ mod sound_tests {
         assert_eq!(s.sound_volume, 40);
         assert!(s.apply_patch(&json!({"soundCustomFile": "custom.mp3", "soundName": "custom"})).is_empty());
         assert!(!valid_custom_sound_file("custom.exe") && !valid_custom_sound_file("other.wav") && valid_custom_sound_file(""));
+    }
+}
+
+#[cfg(test)]
+mod mascot_tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn mascot_preferences_default_to_subtle_and_validate() {
+        let mut s = Settings::default();
+        assert!(s.mascot && s.mascot_idle && s.mascot_pointer && !s.reduce_motion);
+        assert_eq!(s.mascot_intensity, MascotIntensity::Subtle);
+        assert!(s.apply_patch(&json!({"mascot": false, "mascotIntensity": "playful", "reduceMotion": true})).is_empty());
+        assert!(!s.mascot && s.reduce_motion && s.mascot_intensity == MascotIntensity::Playful);
+        assert_eq!(s.apply_patch(&json!({"mascotIntensity": "wild"})), ["mascotIntensity"]);
+        assert_eq!(s.to_json()["mascotIntensity"], "playful");
     }
 }
