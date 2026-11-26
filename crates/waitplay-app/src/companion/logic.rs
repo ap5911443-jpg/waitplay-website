@@ -9,8 +9,9 @@ use crate::platform::{WindowId, NO_WINDOW};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-/// Grace period for peeking at another tab or app and coming straight back without the window flickering.
-pub const AWAY_GRACE: Duration = Duration::from_millis(500);
+/// Grace period for peeking at another app and coming straight back without the window flickering. Short on purpose: showing and
+/// hiding a warm window is cheap, so a peek costs one quick hide and show instead of half a second of the window lingering.
+pub const AWAY_GRACE: Duration = Duration::from_millis(40);
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct AgentSession {
@@ -208,7 +209,7 @@ impl Core {
         if let Some(term) = self.owner_id.as_ref().and_then(|id| self.sessions.get(&key(id))).map(|s| s.hwnd).filter(|h| *h != NO_WINDOW) {
             if env.is_minimized(term) {
                 out.push(Action::SetInputTarget(NO_WINDOW));
-                if self.away_for(env, AWAY_GRACE) && !self.hidden_away {
+                if !self.hidden_away {
                     self.hide_while_away(&mut out);
                 }
                 return out;
@@ -552,15 +553,15 @@ mod tests {
         let mut c = core_with(&[("omp-session", TERM_A)]);
         let t0 = Instant::now();
         c.tick(&mut env(TERM_A, t0), &name);
-        // peek elsewhere: nothing within 500ms
-        let acts = c.tick(&mut env(OTHER, t0 + Duration::from_millis(100)), &name);
+        // peek elsewhere: nothing within the grace period
+        let acts = c.tick(&mut env(OTHER, t0 + Duration::from_millis(10)), &name);
         assert!(!acts.contains(&Action::HideWhileAway));
         assert!(acts.contains(&Action::SetInputTarget(NO_WINDOW)));
-        let acts = c.tick(&mut env(OTHER, t0 + Duration::from_millis(700)), &name);
+        let acts = c.tick(&mut env(OTHER, t0 + Duration::from_millis(100)), &name);
         assert!(acts.contains(&Action::HideWhileAway));
         assert!(c.hidden_away);
         // back to the terminal: shown again, without stealing focus
-        let acts = c.tick(&mut env(TERM_A, t0 + Duration::from_millis(900)), &name);
+        let acts = c.tick(&mut env(TERM_A, t0 + Duration::from_millis(200)), &name);
         assert!(acts.contains(&Action::Show { activate: false }));
         assert!(!c.hidden_away);
     }
@@ -570,8 +571,8 @@ mod tests {
         let mut c = core_with(&[("omp-session", TERM_A)]);
         let t0 = Instant::now();
         c.tick(&mut env(TERM_A, t0), &name);
-        c.tick(&mut env(OTHER, t0 + Duration::from_millis(100)), &name);
-        c.tick(&mut env(TERM_A, t0 + Duration::from_millis(300)), &name);
+        c.tick(&mut env(OTHER, t0 + Duration::from_millis(10)), &name);
+        c.tick(&mut env(TERM_A, t0 + Duration::from_millis(20)), &name);
         let acts = c.tick(&mut env(OTHER, t0 + Duration::from_millis(1000)), &name);
         assert!(!acts.contains(&Action::HideWhileAway), "the away timer restarted when the user came back");
     }
@@ -594,16 +595,16 @@ mod tests {
         let bridge = |status: &str| vec![BridgeSession { session_id: "omp-session".into(), status: status.into(), last_event_at: 5000, ..Default::default() }];
 
         c.apply_bridge(&bridge("WAITING_FOR_INPUT"), &name);
-        let acts = c.tick(&mut env(TERM_A, t0 + Duration::from_millis(100)), &name);
+        let acts = c.tick(&mut env(TERM_A, t0 + Duration::from_millis(10)), &name);
         assert!(!acts.contains(&Action::HideWhileAway), "grace period first");
-        let acts = c.tick(&mut env(TERM_A, t0 + Duration::from_millis(700)), &name);
+        let acts = c.tick(&mut env(TERM_A, t0 + Duration::from_millis(100)), &name);
         assert!(acts.contains(&Action::HideWhileAway));
         assert!(c.any_wanted(), "the prompt is still running");
         assert!(!c.is_parked(), "bridge polling continues so the answer is noticed");
 
         // answered: the agent is working again
         c.apply_bridge(&bridge("WORKING"), &name);
-        let acts = c.tick(&mut env(TERM_A, t0 + Duration::from_millis(900)), &name);
+        let acts = c.tick(&mut env(TERM_A, t0 + Duration::from_millis(200)), &name);
         assert!(acts.contains(&Action::Show { activate: false }));
         assert!(!c.hidden_away);
     }
@@ -772,9 +773,8 @@ mod tests {
         assert!(!c.hidden_away);
         // minimizing hands the focus to a WaitPlay window (the entertainment window or the widget): that must not read as "the user is here"
         let minimized = |t: Instant| TestEnv { t, fg: ME, wp_windows: vec![ME], minimized: vec![TERM_A] };
-        c.tick(&mut minimized(t0 + Duration::from_millis(100)), &name);
-        assert!(!c.hidden_away, "short grace first");
-        let acts = c.tick(&mut minimized(t0 + Duration::from_secs(2)), &name);
+        // a deliberate minimize hides at once: no grace period to wait out
+        let acts = c.tick(&mut minimized(t0 + Duration::from_millis(1)), &name);
         assert!(acts.contains(&Action::HideWhileAway) && c.hidden_away);
         // still minimized: stays hidden, no flicker
         assert!(!c.tick(&mut minimized(t0 + Duration::from_secs(5)), &name).contains(&Action::Show { activate: false }));

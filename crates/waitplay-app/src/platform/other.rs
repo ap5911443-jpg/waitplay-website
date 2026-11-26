@@ -84,3 +84,12 @@ impl InputWatcher {
     }
     pub fn set_target(&self, _hwnd: WindowId) {}
 }
+
+pub struct ForegroundWatcher;
+
+impl ForegroundWatcher {
+    /// The callback never fires on this platform.
+    pub fn new(_on_change: impl Fn() + Send + Sync + 'static) -> ForegroundWatcher {
+        ForegroundWatcher
+    }
+}

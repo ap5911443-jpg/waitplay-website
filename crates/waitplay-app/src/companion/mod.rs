@@ -43,7 +43,10 @@ const BORDER_DIP: f64 = if cfg!(target_os = "macos") { 0.0 } else { 6.0 };
 const HEADER_BG: (u8, u8, u8, u8) = (0, 0, 0, 0);
 const MIN_WIDTH_DIP: f64 = 360.0;
 const MIN_HEIGHT_DIP: f64 = 320.0;
-const ACTIVE_TICK: Duration = Duration::from_millis(100);
+/// While the window is visible the visibility rules run this often; foreground and minimize changes also wake the loop at once
+/// (`ForegroundWatcher`), so this only paces the short grace timers. Hidden mid-turn it relaxes, parked it relaxes further.
+const ACTIVE_TICK: Duration = Duration::from_millis(15);
+const HIDDEN_TICK: Duration = Duration::from_millis(100);
 const PARKED_TICK: Duration = Duration::from_millis(500);
 /// A companion parked this long with no prompt running quits for real, handing back all its RAM (the next prompt reopens it,
 /// logins are kept on disk). Parking alone still leaves a few hundred MB committed.
@@ -169,6 +172,10 @@ struct App {
     input: InputWatcher,
     proxy: EventLoopProxy<UserEvent>,
     parked_flag: Arc<AtomicBool>,
+    /// The window is on screen: the ticker runs at full rate only then.
+    visible_flag: Arc<AtomicBool>,
+    /// Wakes the event loop the instant the foreground window changes or a window is minimized or restored.
+    _foreground: platform::ForegroundWatcher,
 
     header_state: HeaderState,
     last_site: Option<&'static str>,
@@ -223,7 +230,7 @@ impl App {
                     self.input.set_target(NO_WINDOW);
                     webview2::set_muted(&self.content, true); // a playing reel shouldn't keep talking from an invisible window
                     let _ = self.content.evaluate_script(PAUSE_MEDIA_JS); // queued before the hide, so the page can't pause itself first
-                    self.hide_at = Some(Instant::now() + Duration::from_millis(80));
+                    self.hide_at = Some(Instant::now() + Duration::from_millis(15));
                     self.begin_deep_park();
                     self.set_poll_rate();
                 }
@@ -272,6 +279,7 @@ impl App {
 
     fn on_became_visible(&mut self) {
         self.visible = true;
+        self.visible_flag.store(true, Ordering::SeqCst);
         waitplay_core::companion_state::write(self.site_key, true);
         crate::wp_info!("companion visible");
         self.core.became_visible();
@@ -292,8 +300,9 @@ impl App {
         if self.suspended {
             return;
         }
-        // mid-turn absences are usually short; a parked window deepens sooner
-        let delay = if self.core.is_parked() { Duration::from_millis(1200) } else { Duration::from_millis(6000) };
+        // mid-turn absences are usually short and coming back must be instant, so the page stays warm for two minutes (a frozen page
+        // needs 1-2 s to wake); a parked window with nothing to wait for deepens sooner
+        let delay = if self.core.is_parked() { Duration::from_millis(1200) } else { Duration::from_secs(120) };
         self.deep_park_at = Some(Instant::now() + delay);
     }
 
@@ -421,7 +430,7 @@ impl App {
 
         // the address changes without a page load on single-page sites: look at it now and then, only while someone can see it
         self.url_check_ticks += 1;
-        if self.visible && self.url_check_ticks >= 5 {
+        if self.visible && self.url_check_ticks >= 33 {
             self.url_check_ticks = 0;
             self.refresh_site_state();
         }
@@ -559,6 +568,7 @@ impl App {
                 self.window.set_visible(false);
                 platform::hide_window(self.hwnd());
                 self.visible = false;
+                self.visible_flag.store(false, Ordering::SeqCst);
             }
         }
         if self.deep_park_at.map_or(false, |t| now >= t) {
@@ -726,17 +736,29 @@ pub fn run(opts: Options, _guard: Guard) -> Result<(), String> {
         .map_err(|e| format!("site webview: {}", e))?;
 
     let parked_flag = Arc::new(AtomicBool::new(false));
+    let visible_flag = Arc::new(AtomicBool::new(false));
     let tick_proxy = proxy.clone();
     let tick_parked = parked_flag.clone();
+    let tick_visible = visible_flag.clone();
     std::thread::Builder::new()
         .name("waitplay-ticker".into())
         .spawn(move || loop {
-            std::thread::sleep(if tick_parked.load(Ordering::SeqCst) { PARKED_TICK } else { ACTIVE_TICK });
+            std::thread::sleep(if tick_parked.load(Ordering::SeqCst) {
+                PARKED_TICK
+            } else if tick_visible.load(Ordering::SeqCst) {
+                ACTIVE_TICK
+            } else {
+                HIDDEN_TICK
+            });
             if tick_proxy.send_event(UserEvent::Tick).is_err() {
                 break;
             }
         })
         .map_err(|e| e.to_string())?;
+    let fg_proxy = proxy.clone();
+    let foreground = platform::ForegroundWatcher::new(move || {
+        let _ = fg_proxy.send_event(UserEvent::Tick);
+    });
 
     let poll_proxy = proxy.clone();
     let poller = Poller::start(site.key, true, Box::new(move |r| {
@@ -759,6 +781,8 @@ pub fn run(opts: Options, _guard: Guard) -> Result<(), String> {
         input,
         proxy,
         parked_flag,
+        visible_flag,
+        _foreground: foreground,
         header_state: HeaderState::default(),
         last_site: None,
         last_can_go_back: false,

@@ -842,6 +842,64 @@ impl Drop for InputWatcher {
     }
 }
 
+/// Calls back the moment the foreground window changes or any window is minimized or restored (`SetWinEventHook`, out of context),
+/// so the companion reacts in about a millisecond instead of waiting for its next poll. The hook lives on its own thread with a
+/// message loop; the callback only has to wake the main loop.
+pub struct ForegroundWatcher {
+    thread_id: u32,
+    thread: Option<std::thread::JoinHandle<()>>,
+}
+
+static FOREGROUND_CALLBACK: std::sync::OnceLock<Box<dyn Fn() + Send + Sync>> = std::sync::OnceLock::new();
+
+unsafe extern "system" fn foreground_event(_hook: windows::Win32::UI::Accessibility::HWINEVENTHOOK, _event: u32, _hwnd: HWND, _object: i32, _child: i32, _thread: u32, _time: u32) {
+    if let Some(cb) = FOREGROUND_CALLBACK.get() {
+        cb();
+    }
+}
+
+impl ForegroundWatcher {
+    pub fn new(on_change: impl Fn() + Send + Sync + 'static) -> ForegroundWatcher {
+        use windows::Win32::System::Threading::GetCurrentThreadId;
+        use windows::Win32::UI::Accessibility::{SetWinEventHook, UnhookWinEvent};
+        use windows::Win32::UI::WindowsAndMessaging::{
+            GetMessageW, PeekMessageW, EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_MINIMIZEEND, EVENT_SYSTEM_MINIMIZESTART, MSG, PM_NOREMOVE, WINEVENT_OUTOFCONTEXT,
+        };
+        let _ = FOREGROUND_CALLBACK.set(Box::new(on_change));
+        let (tx, rx) = std::sync::mpsc::channel();
+        let thread = std::thread::Builder::new()
+            .name("waitplay-foreground".into())
+            .spawn(move || unsafe {
+                let mut msg = MSG::default();
+                let _ = PeekMessageW(&mut msg, None, 0, 0, PM_NOREMOVE); // creates the thread's message queue
+                let _ = tx.send(GetCurrentThreadId());
+                let fg = SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, None, Some(foreground_event), 0, 0, WINEVENT_OUTOFCONTEXT);
+                let min = SetWinEventHook(EVENT_SYSTEM_MINIMIZESTART, EVENT_SYSTEM_MINIMIZEEND, None, Some(foreground_event), 0, 0, WINEVENT_OUTOFCONTEXT);
+                while GetMessageW(&mut msg, None, 0, 0).0 > 0 {}
+                let _ = UnhookWinEvent(fg);
+                let _ = UnhookWinEvent(min);
+            })
+            .ok();
+        let thread_id = rx.recv().unwrap_or(0);
+        ForegroundWatcher { thread_id, thread }
+    }
+}
+
+impl Drop for ForegroundWatcher {
+    fn drop(&mut self) {
+        use windows::Win32::UI::WindowsAndMessaging::{PostThreadMessageW, WM_QUIT};
+        if self.thread_id != 0 {
+            // SAFETY: plain thread message to our own thread; it ends the message loop
+            unsafe {
+                let _ = PostThreadMessageW(self.thread_id, WM_QUIT, WPARAM(0), LPARAM(0));
+            }
+        }
+        if let Some(t) = self.thread.take() {
+            let _ = t.join();
+        }
+    }
+}
+
 // ------------------------------------------------------------------------------------------------------------------- displays
 
 pub use self::displays::{cursor_logical, screens, to_physical};

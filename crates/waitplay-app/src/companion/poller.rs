@@ -42,6 +42,8 @@ struct Shared {
     live: Mutex<HashMap<String, Live>>,
     parked: AtomicBool,
     stop: AtomicBool,
+    /// Sleeps the poll interval, but ends the sleep early when a hand-off or quit file appears or the rate changes.
+    waker: waker::Waker,
 }
 
 pub struct Poller {
@@ -52,7 +54,13 @@ pub struct Poller {
 impl Poller {
     /// `owns_signal_files`: this process is the companion that consumes launch/close files; `site_key` picks which launch files.
     pub fn start(site_key: &'static str, owns_signal_files: bool, deliver: Box<dyn Fn(PollResult) + Send>) -> Poller {
-        let shared = Arc::new(Shared { pending: Mutex::new(Vec::new()), live: Mutex::new(HashMap::new()), parked: AtomicBool::new(false), stop: AtomicBool::new(false) });
+        let shared = Arc::new(Shared {
+            pending: Mutex::new(Vec::new()),
+            live: Mutex::new(HashMap::new()),
+            parked: AtomicBool::new(false),
+            stop: AtomicBool::new(false),
+            waker: waker::Waker::new(&paths::signal_dir()),
+        });
         let worker = shared.clone();
         let started_at = now_ms(); // a quit request only counts if it is newer than this
         let thread = thread::Builder::new()
@@ -77,9 +85,7 @@ impl Poller {
     /// A parked window polls slowly and skips the bridge; whatever can bring it back switches it to the fast rate.
     pub fn set_parked(&self, parked: bool) {
         if self.shared.parked.swap(parked, Ordering::SeqCst) != parked {
-            if let Some(t) = &self.thread {
-                t.thread().unpark();
-            }
+            self.shared.waker.wake();
         }
     }
 }
@@ -87,9 +93,106 @@ impl Poller {
 impl Drop for Poller {
     fn drop(&mut self) {
         self.shared.stop.store(true, Ordering::SeqCst);
+        self.shared.waker.wake();
         if let Some(t) = self.thread.take() {
-            t.thread().unpark();
             let _ = t.join();
+        }
+    }
+}
+
+/// An interruptible sleep. On Windows it also watches the signal folder, so a prompt's hand-off file starts the work immediately
+/// instead of up to a whole poll interval later; elsewhere it is a plain timed wait that `wake` can cut short.
+#[cfg(windows)]
+mod waker {
+    use std::path::Path;
+    use std::time::Duration;
+    use windows::core::HSTRING;
+    use windows::Win32::Foundation::{CloseHandle, HANDLE};
+    use windows::Win32::Storage::FileSystem::{FindCloseChangeNotification, FindFirstChangeNotificationW, FindNextChangeNotification, FILE_NOTIFY_CHANGE_FILE_NAME, FILE_NOTIFY_CHANGE_LAST_WRITE};
+    use windows::Win32::System::Threading::{CreateEventW, SetEvent, WaitForMultipleObjects};
+
+    pub struct Waker {
+        event: HANDLE,
+        change: Option<HANDLE>,
+    }
+    // SAFETY: kernel handles may be used from any thread
+    unsafe impl Send for Waker {}
+    unsafe impl Sync for Waker {}
+
+    impl Waker {
+        pub fn new(dir: &Path) -> Waker {
+            let _ = std::fs::create_dir_all(dir);
+            // SAFETY: plain object creation; every handle is closed in Drop
+            unsafe {
+                let event = CreateEventW(None, false, false, None).unwrap_or_default();
+                let change = FindFirstChangeNotificationW(&HSTRING::from(dir.as_os_str()), false, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_LAST_WRITE).ok();
+                Waker { event, change }
+            }
+        }
+        pub fn wait(&self, timeout: Duration) {
+            let ms = timeout.as_millis().min(u32::MAX as u128) as u32;
+            // SAFETY: both handles live as long as `self`
+            unsafe {
+                match self.change {
+                    Some(c) => {
+                        let r = WaitForMultipleObjects(&[self.event, c], false, ms);
+                        if r.0 == 1 {
+                            let _ = FindNextChangeNotification(c); // re-arm for the next change
+                        }
+                    }
+                    None => {
+                        let _ = WaitForMultipleObjects(&[self.event], false, ms);
+                    }
+                }
+            }
+        }
+        pub fn wake(&self) {
+            // SAFETY: the event handle is valid until Drop
+            unsafe {
+                let _ = SetEvent(self.event);
+            }
+        }
+    }
+    impl Drop for Waker {
+        fn drop(&mut self) {
+            // SAFETY: closing the handles this struct owns
+            unsafe {
+                if let Some(c) = self.change.take() {
+                    let _ = FindCloseChangeNotification(c);
+                }
+                let _ = CloseHandle(self.event);
+            }
+        }
+    }
+}
+
+#[cfg(not(windows))]
+mod waker {
+    use std::path::Path;
+    use std::sync::{Condvar, Mutex};
+    use std::time::Duration;
+
+    pub struct Waker {
+        woken: Mutex<bool>,
+        cv: Condvar,
+    }
+    impl Waker {
+        pub fn new(_dir: &Path) -> Waker {
+            Waker { woken: Mutex::new(false), cv: Condvar::new() }
+        }
+        pub fn wait(&self, timeout: Duration) {
+            if let Ok(mut w) = self.woken.lock() {
+                if !*w {
+                    w = self.cv.wait_timeout(w, timeout).map(|(g, _)| g).unwrap_or_else(|e| e.into_inner().0);
+                }
+                *w = false;
+            }
+        }
+        pub fn wake(&self) {
+            if let Ok(mut w) = self.woken.lock() {
+                *w = true;
+                self.cv.notify_all();
+            }
         }
     }
 }
@@ -99,7 +202,7 @@ fn run(shared: Arc<Shared>, site_key: &'static str, owns: bool, started_at: i64,
     let mut next_bridge = Instant::now();
     while !shared.stop.load(Ordering::SeqCst) {
         let interval = if shared.parked.load(Ordering::SeqCst) { PARKED_INTERVAL } else { ACTIVE_INTERVAL };
-        thread::park_timeout(interval);
+        shared.waker.wait(interval);
         if shared.stop.load(Ordering::SeqCst) {
             break;
         }

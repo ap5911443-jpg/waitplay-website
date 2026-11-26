@@ -322,6 +322,15 @@ impl InputWatcher {
     pub fn set_target(&self, _hwnd: WindowId) {}
 }
 
+/// The macOS companion keeps polling; there is no foreground event source it needs.
+pub struct ForegroundWatcher;
+
+impl ForegroundWatcher {
+    pub fn new(_on_change: impl Fn() + Send + Sync + 'static) -> ForegroundWatcher {
+        ForegroundWatcher
+    }
+}
+
 /// Standard application menu (WaitPlay, Edit, Window) so the usual shortcuts work inside the web pages: without an Edit menu
 /// WKWebView ignores Cmd+C / Cmd+V / Cmd+A, and signing in to a site needs paste. Call once on the main thread.
 pub fn install_main_menu(app_name: &str) {
