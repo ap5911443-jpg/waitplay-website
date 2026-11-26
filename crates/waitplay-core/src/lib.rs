@@ -3,6 +3,7 @@
 
 pub mod client;
 pub mod companion_state;
+pub mod insights;
 pub mod paths;
 pub mod process;
 pub mod settings;

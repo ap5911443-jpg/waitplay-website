@@ -1,12 +1,17 @@
 //! What the menu bar, the widget and the settings window say about the agents: derived from the bridge's `GET /sessions` body plus
 //! three flags. Pure, so every rule is unit tested.
 
+use crate::island::Act;
 use serde_json::Value;
 
 /// A working session counts only while it is this fresh (hooks and watchers repeat events well inside it).
 const FRESH_WORKING_MS: i64 = 15_000;
 /// A session that waits for the user stays waiting until the next event: far longer.
 const FRESH_WAITING_MS: i64 = 30 * 60_000;
+/// A finished or failed session stays in the island's list this long.
+const FRESH_DONE_MS: i64 = 90_000;
+/// Rows the island's list can hold.
+const MAX_ROWS: usize = 8;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Activity {
@@ -45,6 +50,23 @@ pub struct SessionsView {
     /// When the longest-running working session started its current task (ms since the epoch), straight from the bridge's
     /// `currentTaskStartedAt`; `None` when nothing is working or the bridge did not say.
     pub working_since: Option<i64>,
+    /// Every live session, one row each: working and waiting first, then those that just finished or failed.
+    pub sessions: Vec<SessionRow>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SessionRow {
+    pub id: String,
+    pub agent_id: String,
+    pub name: String,
+    pub act: Act,
+    /// Working or waiting: when the current task started. Finished: nothing.
+    pub since: Option<i64>,
+    /// Finished: how long the last task took.
+    pub duration_ms: Option<i64>,
+    pub terminal: String,
+    /// Time of the last event, for ordering only.
+    pub at: i64,
 }
 
 impl SessionsView {
@@ -80,6 +102,7 @@ pub fn parse_sessions(json: &str, now_ms: i64) -> Option<SessionsView> {
     let mut agents: Vec<AgentRow> = Vec::new();
     let (mut working_sessions, mut active_sessions) = (0usize, 0usize);
     let mut working_since: Option<i64> = None;
+    let mut rows: Vec<SessionRow> = Vec::new();
     for s in sessions.iter().filter_map(Value::as_object) {
         let id = s.get("agent").and_then(Value::as_str).unwrap_or("").to_string();
         if id.is_empty() {
@@ -93,6 +116,28 @@ pub fn parse_sessions(json: &str, now_ms: i64) -> Option<SessionsView> {
             "WAITING_FOR_INPUT" if age <= FRESH_WAITING_MS => Activity::Waiting,
             _ => Activity::Idle,
         };
+        let num = |k: &str| s.get(k).and_then(|v| v.as_i64().or_else(|| v.as_f64().map(|f| f as i64))).filter(|t| *t > 0);
+        let row_act = match status {
+            "WORKING" | "GAME_ACTIVE" if age <= FRESH_WORKING_MS => Some(Act::Working),
+            "WAITING_FOR_INPUT" if age <= FRESH_WAITING_MS => Some(Act::Waiting),
+            "COMPLETED" if age <= FRESH_DONE_MS => Some(Act::Done),
+            "FAILED" if age <= FRESH_DONE_MS => Some(Act::Failed),
+            _ => None,
+        };
+        if let Some(act) = row_act {
+            let sid = s.get("sessionId").and_then(Value::as_str).unwrap_or("");
+            let shown = s.get("agentDisplayName").and_then(Value::as_str).filter(|n| !n.is_empty() && n.len() <= 40).map(str::to_string).unwrap_or_else(|| agent_name(&id));
+            rows.push(SessionRow {
+                id: if sid.is_empty() { id.clone() } else { sid.to_string() },
+                agent_id: id.clone(),
+                name: shown,
+                act,
+                since: if act.active() { num("currentTaskStartedAt").filter(|t| *t <= now_ms) } else { None },
+                duration_ms: if act.active() { None } else { num("lastTaskDurationMs") },
+                terminal: s.get("terminal").and_then(Value::as_str).unwrap_or("").to_string(),
+                at,
+            });
+        }
         let terminal = s.get("terminal").and_then(Value::as_str).unwrap_or("").to_string();
         if activity == Activity::Working {
             working_sessions += 1;
@@ -119,7 +164,9 @@ pub fn parse_sessions(json: &str, now_ms: i64) -> Option<SessionsView> {
         }
     }
     agents.sort_by(|a, b| a.name.cmp(&b.name));
-    Some(SessionsView { agents, working_sessions, active_sessions, working_since })
+    rows.sort_by(|a, b| (!a.act.active()).cmp(&!b.act.active()).then(b.at.cmp(&a.at)).then(a.id.cmp(&b.id)));
+    rows.truncate(MAX_ROWS);
+    Some(SessionsView { agents, working_sessions, active_sessions, working_since, sessions: rows })
 }
 
 fn rank(a: Activity) -> u8 {
@@ -285,5 +332,32 @@ mod tests {
         assert_eq!(describe(Status::Working, &waiting, "X").0, "Codex needs you");
         assert_eq!(describe(Status::Idle, &SessionsView::default(), "X").0, "Idle");
         assert_eq!(describe(Status::Entertainment, &SessionsView::default(), "YouTube"), ("Entertainment open".into(), "YouTube".into()));
+    }
+
+    #[test]
+    fn every_live_session_is_a_row_with_its_own_state() {
+        let json = format!(
+            r#"{{"sessions":[
+              {{"sessionId":"c1","agent":"claude-code","status":"WORKING","lastEventAt":{n},"currentTaskStartedAt":{s}}},
+              {{"sessionId":"c2","agent":"claude-code","status":"WAITING_FOR_INPUT","lastEventAt":{n}}},
+              {{"sessionId":"x1","agent":"cursor","status":"COMPLETED","lastEventAt":{d},"lastTaskDurationMs":42000,"agentDisplayName":"Cursor IDE"}},
+              {{"sessionId":"x2","agent":"codex","status":"FAILED","lastEventAt":{n}}},
+              {{"sessionId":"old","agent":"omp","status":"COMPLETED","lastEventAt":{o}}},
+              {{"sessionId":"stale","agent":"omp","status":"WORKING","lastEventAt":{o}}}
+            ]}}"#,
+            n = NOW - 1_000,
+            s = NOW - 65_000,
+            d = NOW - 20_000,
+            o = NOW - 600_000
+        );
+        let v = parse_sessions(&json, NOW).unwrap();
+        let rows: Vec<(&str, Act)> = v.sessions.iter().map(|r| (r.id.as_str(), r.act)).collect();
+        assert_eq!(rows, [("c1", Act::Working), ("c2", Act::Waiting), ("x2", Act::Failed), ("x1", Act::Done)], "active first, then the newest finished; old and stale ones are gone");
+        assert_eq!(v.sessions[0].since, Some(NOW - 65_000));
+        assert_eq!(v.sessions[3].duration_ms, Some(42_000));
+        assert_eq!(v.sessions[3].name, "Cursor IDE");
+        assert_eq!(v.sessions[1].name, "Claude Code");
+        // two conversations of one agent stay two rows: one finishing never touches the other
+        assert_eq!(v.sessions.iter().filter(|r| r.agent_id == "claude-code").count(), 2);
     }
 }

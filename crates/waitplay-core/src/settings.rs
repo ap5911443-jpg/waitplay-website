@@ -86,6 +86,36 @@ pub struct Settings {
     /// Agents whose watcher process Vibe Play runs (`opencode`, `codex`, ...). Internal: the settings page changes it through the
     /// install/remove actions, not through `set`.
     pub watchers: Vec<String>,
+    /// Island notifications (toasts) on/off and how long one stays, in seconds.
+    pub notifications: bool,
+    pub notification_secs: u32,
+    /// Sounds: a global mute, volume 0 to 100, which sound plays, and which events play it.
+    pub sound_muted: bool,
+    pub sound_volume: u32,
+    pub sound_name: String,
+    /// File name of the user's own sound inside the app-support `sounds` folder (`custom.wav`, ...); empty when there is none.
+    /// Internal: the app sets it when the user picks a file, the page cannot point it anywhere else.
+    pub sound_custom_file: String,
+    pub sound_events: SoundEvents,
+}
+
+/// Built-in sounds (synthesized by the app, so nothing to license): `classic` is the system alert sound on a Mac.
+pub const SOUND_NAMES: [&str; 6] = ["soft", "chime", "retro", "gentle", "futuristic", "classic"];
+pub const CUSTOM_SOUND_EXTENSIONS: [&str; 6] = ["wav", "aiff", "aif", "caf", "mp3", "m4a"];
+
+#[derive(Serialize, Clone, Copy, PartialEq, Eq, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SoundEvents {
+    pub started: bool,
+    pub completed: bool,
+    pub all_done: bool,
+    pub error: bool,
+    pub opened: bool,
+}
+
+/// `custom.<ext>` with a supported extension: the only file name `sound_custom_file` may hold.
+pub fn valid_custom_sound_file(s: &str) -> bool {
+    s.is_empty() || s.strip_prefix("custom.").is_some_and(|e| CUSTOM_SOUND_EXTENSIONS.contains(&e))
 }
 
 impl Default for Settings {
@@ -104,6 +134,13 @@ impl Default for Settings {
             on_finish: OnFinish::Hide,
             shortcuts: Shortcuts { toggle_automation: DEFAULT_TOGGLE_AUTOMATION.into(), toggle_widget: DEFAULT_TOGGLE_WIDGET.into() },
             watchers: Vec::new(),
+            notifications: true,
+            notification_secs: 5,
+            sound_muted: false,
+            sound_volume: 70,
+            sound_name: "gentle".into(),
+            sound_custom_file: String::new(),
+            sound_events: SoundEvents { started: false, completed: true, all_done: false, error: false, opened: false },
         }
     }
 }
@@ -167,6 +204,50 @@ impl Settings {
         boolean!("showDockIcon", self.show_dock_icon);
         boolean!("widgetCompact", self.widget_compact);
         boolean!("widgetShowStatus", self.widget_show_status);
+        boolean!("notifications", self.notifications);
+        boolean!("soundMuted", self.sound_muted);
+        for (key, ok) in [("notificationSecs", 2..=15u64), ("soundVolume", 0..=100u64)] {
+            if let Some(v) = obj.get(key) {
+                match v.as_u64().filter(|n| ok.contains(n)) {
+                    Some(n) if key == "soundVolume" => self.sound_volume = n as u32,
+                    Some(n) => self.notification_secs = n as u32,
+                    None => rejected.push(key.to_string()),
+                }
+            }
+        }
+        if let Some(v) = obj.get("soundName") {
+            match v.as_str().filter(|s| SOUND_NAMES.contains(s) || *s == "custom") {
+                Some(n) => self.sound_name = n.to_string(),
+                None => rejected.push("soundName".into()),
+            }
+        }
+        if let Some(v) = obj.get("soundCustomFile") {
+            match v.as_str().filter(|s| valid_custom_sound_file(s)) {
+                Some(f) => self.sound_custom_file = f.to_string(),
+                None => rejected.push("soundCustomFile".into()),
+            }
+        }
+        if let Some(v) = obj.get("soundEvents") {
+            match v.as_object() {
+                Some(m) => {
+                    for (k, val) in m {
+                        let slot = match k.as_str() {
+                            "started" => Some(&mut self.sound_events.started),
+                            "completed" => Some(&mut self.sound_events.completed),
+                            "allDone" => Some(&mut self.sound_events.all_done),
+                            "error" => Some(&mut self.sound_events.error),
+                            "opened" => Some(&mut self.sound_events.opened),
+                            _ => None,
+                        };
+                        match (slot, val.as_bool()) {
+                            (Some(s), Some(b)) => *s = b,
+                            _ => rejected.push(format!("soundEvents.{}", k)),
+                        }
+                    }
+                }
+                None => rejected.push("soundEvents".into()),
+            }
+        }
 
         macro_rules! choice {
             ($key:literal, $ty:ty, $field:expr) => {
@@ -334,5 +415,26 @@ mod tests {
         assert_eq!(s.watchers, ["codex", "opencode"], "rejected values change nothing");
         assert!(s.apply_patch(&json!({"watchers": []})).is_empty());
         assert!(s.watchers.is_empty());
+    }
+}
+
+#[cfg(test)]
+mod sound_tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn sound_and_notification_fields_are_validated_individually() {
+        let mut s = Settings::default();
+        assert!(s.sound_events.completed && !s.sound_events.started, "completion sound is the default");
+        assert!(s.apply_patch(&json!({"soundVolume": 40, "soundName": "retro", "soundMuted": true, "notificationSecs": 8, "soundEvents": {"started": true, "allDone": true}})).is_empty());
+        assert_eq!((s.sound_volume, s.sound_name.as_str(), s.sound_muted, s.notification_secs), (40, "retro", true, 8));
+        assert!(s.sound_events.started && s.sound_events.all_done && s.sound_events.completed);
+        let mut bad = s.apply_patch(&json!({"soundVolume": 101, "soundName": "../../x", "notificationSecs": 1, "soundEvents": {"nope": true}, "soundCustomFile": "../evil.wav"}));
+        bad.sort();
+        assert_eq!(bad, ["notificationSecs", "soundCustomFile", "soundEvents.nope", "soundName", "soundVolume"]);
+        assert_eq!(s.sound_volume, 40);
+        assert!(s.apply_patch(&json!({"soundCustomFile": "custom.mp3", "soundName": "custom"})).is_empty());
+        assert!(!valid_custom_sound_file("custom.exe") && !valid_custom_sound_file("other.wav") && valid_custom_sound_file(""));
     }
 }

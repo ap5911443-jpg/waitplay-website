@@ -27,6 +27,10 @@ use tray_icon::menu::{CheckMenuItem, ContextMenu, Menu, MenuEvent, MenuItem, Pre
 use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 use waitplay_core::settings::{Appearance, Settings, WidgetPosition};
 use waitplay_core::{companion_state, now_ms, paths, process, signals, state, BridgeClient};
+use waitplay_core::insights;
+
+use crate::island::{self, Act};
+use crate::sound;
 use wry::{WebView, WebViewBuilder};
 
 const WEBSITE: &str = "https://github.com/ap5911443-jpg/waitplay-website";
@@ -64,6 +68,7 @@ enum Ev {
     Ipc(Target, String),
     Menu(String),
     Hotkey(u32),
+    SoundChosen(Option<String>),
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -275,6 +280,11 @@ struct App {
     problems: Vec<(String, String, String, String)>,
     update_detail: &'static str,
     quitting: bool,
+    /// Grouped notifications and sound cues, from the session list.
+    tracker: island::Tracker,
+    /// Timings of finished work for the Insights page (local only).
+    recorder: insights::Recorder,
+    last_sound_ms: i64,
 }
 
 impl App {
@@ -302,6 +312,9 @@ impl App {
             problems: Vec::new(),
             update_detail: "Automatic update checks arrive in a later release. New versions are published on the website.",
             quitting: false,
+            tracker: island::Tracker::new(),
+            recorder: insights::Recorder::new(),
+            last_sound_ms: 0,
         }
     }
 
@@ -435,6 +448,10 @@ impl App {
         if self.ticks % SUPERVISE_EVERY == 0 {
             self.supervise();
         }
+        // a notification on screen is timed to the second; everything else refreshes every REFRESH_EVERY ticks
+        if self.tracker.toast().is_some() && self.ticks % REFRESH_EVERY != 0 {
+            self.render();
+        }
     }
 
     fn supervise(&mut self) {
@@ -490,7 +507,65 @@ impl App {
                 self.rt.view = SessionsView::default();
             }
         }
+        self.observe_sessions();
         self.render();
+    }
+
+    /// Feeds the new session list to the notification tracker (and so to the sounds) and to the insights recorder.
+    fn observe_sessions(&mut self) {
+        let now = now_ms();
+        let sessions: Vec<island::Sess> = self.rt.view.sessions.iter().map(|r| island::Sess { id: r.id.clone(), name: r.name.clone(), act: r.act }).collect();
+        let key = self.rt.entertainment.clone().unwrap_or_else(|| self.settings.preferred_platform.clone());
+        let label = menu_model::site_label(&key);
+        let ctx = island::Context { platform: label, automation: self.rt.enabled, entertainment_open: self.rt.entertainment.is_some() };
+        let cues = self.tracker.observe(now, &sessions, &ctx, self.settings.notification_secs, self.settings.notifications);
+        if cues.any() {
+            self.play_for(cues, now);
+        }
+        let obs: Vec<insights::Obs> = self
+            .rt
+            .view
+            .sessions
+            .iter()
+            .map(|r| insights::Obs {
+                id: r.id.clone(),
+                agent: r.agent_id.clone(),
+                phase: match r.act {
+                    Act::Working => insights::Phase::Working,
+                    Act::Waiting => insights::Phase::Waiting,
+                    Act::Done => insights::Phase::Completed,
+                    Act::Failed => insights::Phase::Failed,
+                },
+            })
+            .collect();
+        let done = self.recorder.observe(now, &obs, self.rt.entertainment.as_deref());
+        if !done.is_empty() {
+            let _ = std::thread::Builder::new().name("wp-insights".into()).spawn(move || insights::append(&done));
+        }
+    }
+
+    /// One sound per group of events, chosen by priority, never closer than 1.5 s to the previous one.
+    fn play_for(&mut self, c: island::Cues, now: i64) {
+        let e = self.settings.sound_events;
+        let cue = if c.error && e.error {
+            Some(sound::Cue::Error)
+        } else if c.all_done && e.all_done {
+            Some(sound::Cue::AllDone)
+        } else if (c.completed || c.all_done) && e.completed {
+            Some(sound::Cue::Completed)
+        } else if c.started && e.started {
+            Some(sound::Cue::Started)
+        } else if c.opened && e.opened {
+            Some(sound::Cue::Opened)
+        } else {
+            None
+        };
+        if let Some(cue) = cue {
+            if now - self.last_sound_ms >= 1_500 {
+                self.last_sound_ms = now;
+                sound::play(&self.settings, cue);
+            }
+        }
     }
 
     fn status(&self) -> Status {
@@ -500,6 +575,7 @@ impl App {
     // ── rendering the three surfaces ────────────────────────────────────────────────────────────────────────────────────
 
     fn render(&mut self) {
+        self.tracker.tick(now_ms(), self.settings.notification_secs);
         let st = self.status();
         let platform_label = menu_model::site_label(&self.settings.preferred_platform);
         let (title, detail) = status::describe(st, &self.rt.view, platform_label);
@@ -530,6 +606,24 @@ impl App {
         }
     }
 
+    /// One entry per live session for the island and the Sessions pane.
+    fn session_rows_json(&self) -> Vec<Value> {
+        self.rt
+            .view
+            .sessions
+            .iter()
+            .map(|r| {
+                let act = match r.act {
+                    Act::Working => "working",
+                    Act::Waiting => "waiting",
+                    Act::Done => "done",
+                    Act::Failed => "failed",
+                };
+                json!({ "id": r.id, "name": r.name, "act": act, "since": r.since, "durMs": r.duration_ms, "terminal": r.terminal })
+            })
+            .collect()
+    }
+
     fn widget_state(&self, st: Status, title: &str, detail: &str) -> Value {
         let key = self.settings.preferred_platform.as_str();
         let view = &self.rt.view;
@@ -543,6 +637,13 @@ impl App {
             .iter()
             .map(|k| json!({ "key": k, "label": menu_model::site_label(k), "on": self.settings.platforms.get(k) == Some(true) }))
             .collect();
+        let now = now_ms();
+        let open_label = self.rt.entertainment.as_deref().map(menu_model::site_label);
+        let opening = view.sessions.iter().any(|r| r.act.active() && r.since.is_some_and(|s| now - s < 10_000));
+        let just_finished = view.sessions.iter().any(|r| !r.act.active() && now - r.at < 8_000);
+        let ent = island::entertainment_line(self.rt.enabled, open_label, menu_model::site_label(key), view.active_sessions, opening, just_finished);
+        let rows = self.session_rows_json();
+        let toast = self.tracker.toast().map(|t| json!({ "id": t.id, "kind": t.kind, "title": t.title, "body": t.body, "secs": self.settings.notification_secs }));
         json!({
             "status": st.as_str(),
             "label": title,
@@ -561,6 +662,11 @@ impl App {
             // the camera notch of the display the widget is on (points), so the page can start exactly as big as the hardware
             "notch": self.widget_screen().and_then(|s| platform::notch_size(s.frame.x, s.frame.y)).map(|(w, h)| json!({ "w": w, "h": h })),
             "since": view.working_since,
+            "sessionList": rows,
+            "ent": { "state": ent.state, "text": ent.text, "hint": ent.hint },
+            "entOpen": self.rt.entertainment.is_some(),
+            "toast": toast,
+            "muted": self.settings.sound_muted,
         })
     }
 
@@ -654,6 +760,9 @@ impl App {
                 "enabled": self.rt.enabled,
                 "status": st.as_str(),
                 "bridge": { "connected": self.rt.bridge_ok },
+                "sessions": self.session_rows_json(),
+                "entertainment": { "open": self.rt.entertainment.is_some() },
+                "customSound": self.settings.sound_custom_file,
                 "errors": errors,
                 "agents": agents,
                 "permissions": permissions::list(self.settings.launch_at_login),
@@ -885,6 +994,60 @@ impl App {
         }
     }
 
+    /// "Hide entertainment" from the island. With agents running, the window steps aside for these prompts only (the same path as
+    /// closing it with its own button: monitoring and the sessions are untouched, and it does not pop straight back); with none
+    /// running, it closes.
+    fn hide_entertainment(&mut self) {
+        let ids: Vec<String> = self.rt.view.sessions.iter().filter(|r| r.act.active()).map(|r| r.id.clone()).collect();
+        if ids.is_empty() {
+            signals::write_quit_signal();
+        } else {
+            for id in &ids {
+                signals::record_dismissal(id);
+                signals::write_close_signal(id);
+            }
+        }
+    }
+
+    fn choose_sound(&self) {
+        let proxy = self.proxy.clone();
+        let _ = std::thread::Builder::new().name("wp-choose-sound".into()).spawn(move || {
+            let script = "POSIX path of (choose file with prompt \"Choose a completion sound\" of type {\"public.audio\"})";
+            let Ok(out) = std::process::Command::new("/usr/bin/osascript").args(["-e", script]).output() else { return };
+            if !out.status.success() {
+                return; // cancelled
+            }
+            let path = String::from_utf8_lossy(&out.stdout).trim().to_string();
+            match sound::import_custom(std::path::Path::new(&path), &sound::custom_dir()) {
+                Ok(name) => {
+                    let _ = proxy.send_event(Ev::SoundChosen(Some(name)));
+                }
+                Err(e) => {
+                    wp_warn!("custom sound: {}", e);
+                    let _ = proxy.send_event(Ev::SoundChosen(None));
+                }
+            }
+        });
+    }
+
+    fn on_sound_chosen(&mut self, file: Option<String>, target: &EventLoopWindowTarget<Ev>) {
+        let Some(name) = file else {
+            self.problem("custom-sound", "error", "That sound could not be used.", "Choose a WAV, AIFF, CAF, MP3 or M4A file smaller than 5 MB.");
+            return;
+        };
+        self.clear_problem("custom-sound");
+        self.apply_settings_patch(&json!({ "soundCustomFile": name, "soundName": "custom" }), target);
+        sound::preview(&self.settings);
+    }
+
+    fn send_insights(&self, range: &str, tz_min: i64) {
+        let Some(range) = insights::Range::parse(range) else { return };
+        let summary = insights::summarize(&insights::load(), now_ms(), range, tz_min.clamp(-840, 840) as i32);
+        if let Some(w) = self.settings_win.as_ref() {
+            let _ = w.webview.evaluate_script(&format!("window.wpInsights&&wpInsights({})", summary));
+        }
+    }
+
     fn sync_login_item(&mut self) {
         let Ok(exe) = std::env::current_exe() else { return };
         match login_item::sync(&home(), self.settings.launch_at_login, &exe) {
@@ -1040,6 +1203,15 @@ impl App {
                     w.window.set_maximized(!w.window.is_maximized());
                 }
             }
+            "insights" => self.send_insights(&str_of("range"), v.get("tz").and_then(Value::as_i64).unwrap_or(0)),
+            "previewSound" => sound::preview(&self.settings),
+            "chooseSound" => self.choose_sound(),
+            "removeSound" => {
+                sound::remove_custom();
+                self.clear_problem("custom-sound");
+                let patch = if self.settings.sound_name == "custom" { json!({ "soundCustomFile": "", "soundName": "gentle" }) } else { json!({ "soundCustomFile": "" }) };
+                self.apply_settings_patch(&patch, target);
+            }
             "quit" => self.quitting = true,
             other => wp_warn!("settings page sent an unknown message {:?}", other),
         }
@@ -1094,6 +1266,13 @@ impl App {
                     }
                 }
             }
+            "openEntertainment" => self.open_entertainment(),
+            "hideEntertainment" => self.hide_entertainment(),
+            "toggleMute" => {
+                let muted = !self.settings.sound_muted;
+                self.apply_settings_patch(&json!({ "soundMuted": muted }), target);
+            }
+            "dismissToast" => self.tracker.dismiss_toast(),
             other => wp_warn!("widget page sent an unknown message {:?}", other),
         }
         self.render();
@@ -1132,6 +1311,8 @@ impl App {
 
     fn cleanup(&mut self) {
         wp_info!("quitting");
+        let records = self.recorder.flush(now_ms());
+        insights::append(&records);
         signals::write_quit_signal();
         self.supervisor.shutdown();
         self.account.close();
@@ -1255,6 +1436,7 @@ pub fn run() -> Result<(), String> {
             Event::NewEvents(StartCause::Init) => app.init(target),
             Event::UserEvent(Ev::Tick) => app.on_tick(target),
             Event::UserEvent(Ev::Sessions(body)) => app.on_sessions(body),
+            Event::UserEvent(Ev::SoundChosen(file)) => app.on_sound_chosen(file, target),
             Event::UserEvent(Ev::Ipc(Target::Settings, body)) => app.on_settings_ipc(&body, target),
             Event::UserEvent(Ev::Ipc(Target::Widget, body)) => app.on_widget_ipc(&body, target),
             Event::UserEvent(Ev::Ipc(Target::Account, body)) => app.on_account_ipc(&body),

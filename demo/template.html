@@ -291,7 +291,18 @@ function widgetState(){
     justFinished: st === 'idle' && !!S.justFinished, since: sw.length ? Math.min(...sw) : null,
     platforms: SITES.map(([k, l]) => ({ key: k, label: l, on: S.settings.platforms[k] === true })), platform: S.settings.preferredPlatform, platformLabel: siteLabel(S.settings.preferredPlatform),
     enabled: S.enabled, compact: S.settings.widgetCompact, showStatus: S.settings.widgetShowStatus, corner: S.settings.widgetPosition,
-    notch: !IS_WIN && S.settings.widgetPosition === 'top-center' ? { w: 190, h: 34 } : null };
+    notch: !IS_WIN && S.settings.widgetPosition === 'top-center' ? { w: 190, h: 34 } : null,
+    sessionList: S.sessions.map(s => ({ id: s.agent + (s.terminal || ''), name: AGENT_NAMES[s.agent], act: s.activity === 'idle' ? 'done' : s.activity, since: s.activity === 'idle' ? null : s.since, durMs: s.activity === 'idle' ? (s.endedAt || Date.now()) - s.since : null, terminal: s.terminal })),
+    ent: entLine(), entOpen: !!S.ent.visible, toast: S.toast || null, muted: !!S.muted };
+}
+let toastN = 0, toastT = 0, peak = 0;
+function notify(kind, title, body){ S.toast = { id: ++toastN, kind, title, body, secs: 5 }; clearTimeout(toastT); toastT = setTimeout(() => { S.toast = null; render(); }, 5000); }
+function entLine(){
+  const plat = siteLabel(S.settings.preferredPlatform), n = activeSessions();
+  if (!S.enabled) return { state: 'paused', text: 'Automation paused', hint: 'Agents are still being watched.' };
+  if (S.ent.visible) return n === 0 ? (S.justFinished ? { state: 'closing', text: plat + ' closing', hint: 'Closing automatically.' } : { state: 'open', text: plat + ' open', hint: '' }) : { state: 'active', text: plat + ' active', hint: n === 1 ? 'Closes when the session finishes.' : 'Stays open until every session finishes.' };
+  if (n === 0) return { state: 'waiting', text: 'Waiting for an agent', hint: '' };
+  return S.ent.dismissed ? { state: 'hidden', text: 'Entertainment hidden', hint: 'Open it from here any time.' } : { state: 'opening', text: 'Opening ' + plat + '\u2026', hint: '' };
 }
 function menuEntries(){
   const st = overall(), [title] = describe(st), m = [];
@@ -519,6 +530,10 @@ function onWidget(m, d){
   else if (m.t === 'shape') { if (!IS_WIN) Object.assign(glass.style, { left: m.x + 'px', top: m.y + 'px', width: m.w + 'px', height: m.h + 'px', borderRadius: m.r + 'px', boxShadow: 'inset 0 0 0 .5px rgba(255,255,255,.3)' }); }
   else if (m.t === 'platform') patchSettings({ preferredPlatform: m.key });
   else if (m.t === 'toggle') toggleAutomation();
+  else if (m.t === 'openEntertainment') { S.ent.dismissed = false; openEnt(true); }
+  else if (m.t === 'hideEntertainment') closeEnt(true);
+  else if (m.t === 'toggleMute') { S.muted = !S.muted; render(); }
+  else if (m.t === 'dismissToast') { S.toast = null; render(); }
   else if (m.t === 'openSettings') openWin('settings');
   else if (m.t === 'menu') { const r = widgetWin.getBoundingClientRect(), s = stage.getBoundingClientRect(); openMenu(Math.max(8, (r.left - s.left) / scale() + 20), Math.max(WORK.y + 4, (r.top - s.top) / scale() + (IS_WIN ? 70 : -300))); }
 }
@@ -642,7 +657,10 @@ function quitApp(){ S.running = false; widgetWin.style.display = 'none'; ent.cla
 $('#relaunch').addEventListener('click', () => { S.running = true; tray.style.opacity = 1; $('#toast').style.display = 'none'; render(); });
 
 /* ---- the scripted agent story ---- */
-function addSession(agent, terminalName){ const s = S.sessions.find(x => x.agent === agent); if (s) { s.activity = 'working'; return s; } const n = { agent, activity: 'working', terminal: terminalName || TERMINAL_NAME, since: Date.now() }; S.sessions.push(n); return n; }
+function addSession(agent, terminalName){ const s = S.sessions.find(x => x.agent === agent); if (s) { s.activity = 'working'; return s; } const n = { agent, activity: 'working', terminal: terminalName || TERMINAL_NAME, since: Date.now() }; S.sessions.push(n);
+  const live = S.sessions.filter(x => x.activity !== 'idle').length; peak = Math.max(peak, live);
+  if (S.enabled) notify('started', live > 1 ? live + ' AI coding sessions are now active.' : AGENT_NAMES[agent] + ' started working.', live > 1 ? S.sessions.filter(x => x.activity !== 'idle').map(x => AGENT_NAMES[x.agent]).join(', ') : siteLabel(S.settings.preferredPlatform) + ' is opening.');
+  return n; }
 function maybeAutoOpen(){ if (S.enabled && S.bridgeOk && !S.ent.visible) later(1700, () => { if (S.sessions.some(s => s.activity === 'working') && S.enabled && !S.ent.visible && !S.ent.dismissed) openEnt(false, false); }); }
 function runPrompt(text){
   if (!S.running) return;
@@ -658,7 +676,10 @@ function runPrompt(text){
    [14000, () => finishAgent('claude-code', think)]].forEach(([t, fn]) => later(t + 1000, fn));
 }
 function finishAgent(id, think){
-  const s = S.sessions.find(x => x.agent === id); if (!s) return; s.activity = 'idle';
+  const s = S.sessions.find(x => x.agent === id); if (!s) return; s.activity = 'idle'; s.endedAt = Date.now();
+  { const left = S.sessions.filter(x => x.activity !== 'idle'), plat = siteLabel(S.settings.preferredPlatform);
+    if (left.length) notify('done', AGENT_NAMES[id] + ' completed.', (left.length === 1 ? AGENT_NAMES[left[0].agent] + ' is still working.' : left.length + ' sessions are still working.') + (S.ent.visible ? ' ' + plat + ' stays open.' : ''));
+    else { notify(peak > 1 ? 'alldone' : 'done', peak > 1 ? 'All coding sessions completed.' : AGENT_NAMES[id] + ' finished its task.', peak > 1 && S.ent.visible ? 'Your entertainment window is closing.' : 'You can get back to your code.'); peak = 0; } }
   if (think) think.remove();
   if (id === 'claude-code') tline('<span class="ok">\u25cf</span> Done. Added a token-bucket limiter to checkout and 6 tests, all passing.');
   if (!S.sessions.some(x => x.activity !== 'idle')) {

@@ -74,6 +74,24 @@ The script ad-hoc signs by default, so a local build never needs an Apple accoun
 staple). The GitHub Actions workflow `.github/workflows/macos.yml` builds and tests on a macOS runner for `aarch64-apple-darwin`
 and `x86_64-apple-darwin`, signs when the `APPLE_*` secrets exist, and attaches the DMGs to a `v*` tag release.
 
+## The island, sounds and insights
+
+* **Sessions.** The island lists every live session (working, waiting for you, just finished or failed) with its own timer. Sessions are
+  independent: one finishing never ends another, and the single shared entertainment window stays open until the last one is done.
+  The line under the status says what Vibe Play is doing with it (opening, active, hidden, closing, paused). "Active" is shown only
+  once the window is really open.
+* **Notifications.** Short messages in the island when agents start, finish, fail, or entertainment opens. Events within about a second
+  are grouped ("3 AI coding sessions are now active"). Rules live in `crates/waitplay-app/src/island.rs` (unit tested); nothing fires
+  for what was already running when the app started. Settings > Sounds & Alerts turns them off and sets how long they stay.
+* **Controls.** Open or hide the entertainment window, switch platform, pause automation and mute from the expanded island. Hiding
+  uses the same path as the window's own close button, so it does not pop straight back for that prompt.
+* **Sounds.** Six built-in sounds are synthesized by the app (`sound.rs`, nothing to license); "Classic" plays the system Glass sound.
+  The user can also pick a WAV/AIFF/CAF/MP3/M4A file (up to 5 MB; copied to `~/Library/Application Support/WaitPlay/sounds/`),
+  preview, set the volume, mute, and choose which events play. Several finishes in one group play one sound.
+* **Insights.** `insights.jsonl` in the app-support folder holds timings only (agent, start/end, working and waiting time, which
+  platform was open); no prompts, code or terminal text. Settings > Insights shows today, 7 days, 30 days or all time. "Waiting for
+  you" is the time an agent reported it was waiting for input. Work still running when the app quits is recorded as abandoned.
+
 ## Known limits
 
 * Automatic updates are not implemented (the About pane says so).

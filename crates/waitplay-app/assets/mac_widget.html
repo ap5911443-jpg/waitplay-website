@@ -101,6 +101,44 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #shell[data-phase=work] .bars i:nth-child(3),#shell[data-phase=start] .bars i:nth-child(3){animation-delay:.36s}
 @keyframes eq{0%,100%{height:4px}50%{height:12px}}
 
+/* notification: a row under the header, inside the shell */
+#toast{position:absolute;left:0;right:0;top:var(--bh,36px);height:var(--th,0px);padding:0 16px;display:flex;align-items:center;gap:10px;opacity:0;pointer-events:none;overflow:hidden;transition:opacity .25s ease,height .35s var(--ease,ease)}
+#shell.hastoast #toast{opacity:1;pointer-events:auto;transition:opacity .3s ease .12s,height .35s var(--ease,ease)}
+#toast .td{width:8px;height:8px;border-radius:50%;flex:none;background:var(--accent)}
+#toast[data-kind=started] .td{background:#ffb02e} #toast[data-kind=done] .td,#toast[data-kind=alldone] .td{background:#2fd28b} #toast[data-kind=alldone] .td{background:#8dffb8} #toast[data-kind=error] .td{background:#ff6159}
+#toast .tx{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+#toast b{font-size:12.5px;font-weight:600;line-height:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#toast .tx span{font-size:11.5px;line-height:14px;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#toast .tx span:empty{display:none}
+#tClose{all:unset;box-sizing:border-box;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--fg2);cursor:pointer;flex:none}
+#tClose:hover{background:var(--chip);color:#fff}
+#tClose svg{width:9px;height:9px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
+
+/* panel pieces */
+#entline{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;min-height:22px;margin-bottom:6px}
+.ed{width:8px;height:8px;border-radius:50%;background:#4a4a4f;align-self:center;flex:none}
+#entline[data-state=active] .ed,#entline[data-state=open] .ed{background:#2fd28b} #entline[data-state=opening] .ed,#entline[data-state=closing] .ed{background:#ffb02e} #entline[data-state=paused] .ed{background:#a58b45}
+.et{font-size:12.5px;font-weight:600} .eh{font-size:11.5px;color:var(--fg2)} .eh:empty{display:none}
+.shead{font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--fg2);margin:6px 0 4px;text-transform:uppercase}
+#sess{display:flex;flex-direction:column;gap:2px;margin-bottom:6px}
+.srow{border-radius:10px;padding:5px 8px;cursor:pointer;transition:background .18s}
+.srow:hover{background:var(--chip)}
+.srow .l1{display:flex;align-items:center;gap:8px;min-height:20px}
+.sd{width:8px;height:8px;border-radius:50%;flex:none;background:#4a4a4f}
+.srow[data-act=working] .sd{background:#2fd28b} .srow[data-act=waiting] .sd{background:#ffb02e} .srow[data-act=done] .sd{background:#8dffb8;opacity:.7} .srow[data-act=failed] .sd{background:#ff6159}
+.sn{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.ss{font-size:11.5px;color:var(--fg2);white-space:nowrap}
+.srow[data-act=failed] .ss{color:#ff8a84}
+.st{font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;min-width:44px;text-align:right}
+.sdet{display:none;font-size:11.5px;color:var(--fg2);padding:3px 0 2px 16px}
+.srow.sel .sdet{display:block}
+.snone{font-size:12px;color:var(--fg2);padding:4px 8px}
+#ctl{display:flex;gap:6px;margin:6px 0 4px}
+.cbtn{all:unset;box-sizing:border-box;flex:1;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--chip);box-shadow:inset 0 0 0 1px rgba(255,255,255,.05);font-size:12px;font-weight:600;color:var(--fg2);cursor:pointer;transition:background .2s,color .2s,transform .2s var(--spring)}
+.cbtn:hover{background:var(--chip-hover);color:#fff} .cbtn:active{transform:scale(.97)}
+.cbtn[hidden]{display:none}
+.cbtn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
 /* pill mode (no notch): the same content in one row */
 #bar{height:var(--bh,36px);padding:0 10px 0 8px;align-items:center;gap:10px;cursor:pointer}
 #bar{display:none}
@@ -112,7 +150,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #shell.pill.live #bar .bars,#shell.pill.open #bar .bars{display:none}
 
 /* panel */
-#body{position:absolute;left:0;right:0;top:var(--bh,36px);padding:0 18px 16px;opacity:0;pointer-events:none;transition:opacity .2s ease}
+#body{position:absolute;left:0;right:0;top:calc(var(--bh,36px) + var(--th,0px));padding:0 18px 16px;opacity:0;pointer-events:none;transition:opacity .2s ease}
 #shell.open #body{opacity:1;pointer-events:auto;transition:opacity .3s ease .16s}
 .sep{height:1px;background:var(--line);margin:2px 0 10px}
 .row2k{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:26px}
@@ -171,12 +209,14 @@ body.demo #wrap{margin:0 auto}
         <span class="inds" id="pinds" aria-hidden="true"></span>
         <button class="chev" id="pchev" type="button" aria-label="Expand" aria-expanded="false"><svg viewBox="0 0 12 12"><path d="M3 4.5 6 7.5 9 4.5"/></svg></button>
       </div>
+      <div id="toast" role="status" aria-live="polite"><span class="td"></span><span class="tx"><b id="tTitle"></b><span id="tBody"></span></span><button id="tClose" type="button" aria-label="Dismiss notification"><svg viewBox="0 0 10 10"><path d="M2 2l6 6M8 2L2 8"/></svg></button></div>
       <div id="body">
         <div class="sep"></div>
-        <div class="row2k"><span class="k">Agent</span><span class="v" id="vAgent"></span></div>
-        <div class="row2k"><span class="k">Status</span><span class="v" id="vStatus"></span></div>
-        <div class="row2k"><span class="k">Active sessions</span><span class="v" id="vSessions"></span></div>
+        <div id="entline"><span class="ed" id="entDot"></span><span class="et" id="entText"></span><span class="eh" id="entHint"></span></div>
+        <div class="shead"><span id="sHead">No active sessions</span></div>
+        <div id="sess" role="list"></div>
         <div id="plats" role="radiogroup" aria-label="Entertainment platform"></div>
+        <div id="ctl"><button class="cbtn" id="cOpen" type="button"></button><button class="cbtn" id="cMute" type="button"></button></div>
         <div id="foot">
           <span class="row2k" style="gap:10px"><span class="k">Automation</span><button class="sw" id="sw" type="button" role="switch" aria-checked="true" aria-label="Automation"></button></span>
           <button class="link" id="settings" type="button">Settings…</button>
@@ -199,8 +239,9 @@ body.demo #wrap{margin:0 auto}
   };
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   let S = {}, expanded = false, lastLabel = null, lastSize = '', shrinkTimer = 0, tickTimer = 0, hoverTimer = 0, dwellTimer = 0, sweepTimer = 0, phaseTimer = 0, relayTimer = 0;
-  let prevActive = false, startUntil = 0, doneUntil = 0, lastAgent = '', pointerIn = false;
-  const PAD_X = 24, PAD_B = 26;
+  let prevActive = false, startUntil = 0, doneUntil = 0, lastAgent = '', pointerIn = false, toastId = 0, selId = '';
+  const PAD_X = 24, PAD_B = 26, TOAST_H = 46;
+  const toastOn = () => !!S.toast;
 
   /* ---- geometry ---- */
   const hasNotch = () => !!(S.notch && S.notch.w > 0 && (S.corner || 'top-center') === 'top-center');
@@ -214,7 +255,7 @@ body.demo #wrap{margin:0 auto}
     if (st === 'working') return now < startUntil ? 'start' : 'work';
     return now < doneUntil ? 'done' : 'idle';
   };
-  const live = () => { const p = phase(); return p === 'start' || p === 'work' || p === 'ent' || p === 'done' || p === 'error'; };
+  const live = () => { const p = phase(); return toastOn() || p === 'start' || p === 'work' || p === 'ent' || p === 'done' || p === 'error'; };
   function sizes(){
     if (hasNotch()){
       const w = Math.max(392, NW() + 2 * 96), nh = NH();
@@ -251,9 +292,12 @@ body.demo #wrap{margin:0 auto}
     const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = s % 60, two = n => (n < 10 ? '0' : '') + n;
     return h ? h + ':' + two(m) + ':' + two(r) : two(m) + ':' + two(r);
   }
-  function paintTimer(){ const t = S.since ? fmt(Date.now() - S.since) : ''; $('ntimer').textContent = t; $('ptimer').textContent = t; }
+  function paintTimer(){
+    const t = S.since ? fmt(Date.now() - S.since) : ''; $('ntimer').textContent = t; $('ptimer').textContent = t;
+    document.querySelectorAll('#sess [data-since]').forEach(e => { e.textContent = fmt(Date.now() - Number(e.dataset.since)); });
+  }
   function syncTimer(){
-    const show = !!S.since && (live() || expanded) && phase() !== 'done';
+    const show = (!!S.since || !!document.querySelector('#sess [data-since]')) && (live() || expanded) && phase() !== 'done';
     if (!show){ clearInterval(tickTimer); tickTimer = 0; $('ntimer').textContent = ''; $('ptimer').textContent = ''; return; }
     paintTimer(); if (!tickTimer) tickTimer = setInterval(() => { if (!document.hidden) paintTimer(); }, 1000);
   }
@@ -267,7 +311,9 @@ body.demo #wrap{margin:0 auto}
     const z = sizes(), isLive = live(), p = phase();
     clearTimeout(shrinkTimer);
     const bodyH = body.scrollHeight;
-    const target = expanded ? { w: z.panelW, h: z.hdr + bodyH, r: z.notchMode ? 28 : 26 } : (isLive ? z.live : z.rest);
+    const th = toastOn() ? TOAST_H : 0;
+    const target = expanded ? { w: z.panelW, h: z.hdr + th + bodyH, r: z.notchMode ? 28 : 26 } : (isLive ? Object.assign({}, z.live, { h: z.live.h + th }) : z.rest);
+    shell.style.setProperty('--th', th + 'px'); shell.classList.toggle('hastoast', th > 0);
     shell.classList.toggle('nm', z.notchMode); shell.classList.toggle('pill', !z.notchMode);
     shell.classList.toggle('live', isLive && !expanded); shell.classList.toggle('open', expanded);
     wrap.classList.toggle('pill', !z.notchMode);
@@ -308,11 +354,12 @@ body.demo #wrap{margin:0 auto}
     prevActive = active;
     const p = phase();
     const label = p === 'done' ? 'All done' : (S.label || '');
-    const sub = p === 'done' ? ((lastAgent || 'The agent') + ' finished') : (S.compact ? '' : (S.detail || ''));
+    const ent = S.ent || {};
+    const subLive = (st === 'working' || st === 'entertainment') && ent.text ? [ent.text, (S.sessions || 0) > 1 ? S.sessions + ' sessions' : ''].filter(Boolean).join(' \u00b7 ') : (S.detail || '');
+    const sub = p === 'done' ? ((lastAgent || 'The agent') + ' finished') : (S.compact ? '' : subLive);
     ['ntitle','ptitle'].forEach(id => $(id).textContent = label); ['nsub','psub'].forEach(id => $(id).textContent = sub);
     $('prest').textContent = st === 'paused' ? 'Paused' : 'Vibe Play';
-    $('vAgent').textContent = (S.agent || '—') + (S.terminal ? ' · ' + S.terminal : '');
-    $('vStatus').textContent = S.statusText || label; $('vSessions').textContent = String(S.sessions || 0);
+    paintToast(); renderSessions(); renderControls();
     $('sw').setAttribute('aria-checked', S.enabled ? 'true' : 'false');
     if (label !== lastLabel){ lastLabel = label; }
     buildPlatforms();
@@ -321,11 +368,65 @@ body.demo #wrap{margin:0 auto}
   }
   function relayout(){ layout(); }
 
+  /* ---- session list, entertainment line, controls ---- */
+  const ACT = { working: 'Working', waiting: 'Waiting', done: 'Completed', failed: 'Error' };
+  const ICON = {
+    open: '<svg viewBox="0 0 14 14"><path d="M5 3H3v8h8V9M8 2h4v4M12 2 6.5 7.5"/></svg>',
+    hide: '<svg viewBox="0 0 14 14"><path d="M1.5 7S3.5 3.5 7 3.5 12.5 7 12.5 7 10.5 10.5 7 10.5 1.5 7 1.5 7zM2 12 12 2"/></svg>',
+    mute: '<svg viewBox="0 0 14 14"><path d="M2 5.5v3h2.5L8 11V3L4.5 5.5zM10 5l3 4M13 5l-3 4"/></svg>',
+    unmute: '<svg viewBox="0 0 14 14"><path d="M2 5.5v3h2.5L8 11V3L4.5 5.5zM10 5c1 .6 1.5 1.2 1.5 2S11 8.4 10 9"/></svg>'
+  };
+  function renderSessions(){
+    const list = S.sessionList || [], box = $('sess');
+    const active = list.filter(r => r.act === 'working' || r.act === 'waiting').length;
+    $('sHead').textContent = active === 0 ? 'No active sessions' : active === 1 ? '1 active session' : active + ' active sessions';
+    box.textContent = '';
+    if (!list.length){ const n = document.createElement('div'); n.className = 'snone'; n.textContent = 'Nothing is running right now.'; box.appendChild(n); return; }
+    list.slice(0, 5).forEach(r => {
+      const row = document.createElement('div'); row.className = 'srow' + (r.id === selId ? ' sel' : ''); row.dataset.act = r.act; row.setAttribute('role', 'listitem');
+      const l1 = document.createElement('div'); l1.className = 'l1';
+      const d = document.createElement('span'); d.className = 'sd';
+      const n = document.createElement('span'); n.className = 'sn'; n.textContent = r.name;
+      const st = document.createElement('span'); st.className = 'ss'; st.textContent = ACT[r.act] || '';
+      const t = document.createElement('span'); t.className = 'st';
+      if (r.since && (r.act === 'working' || r.act === 'waiting')){ t.dataset.since = String(r.since); t.textContent = fmt(Date.now() - r.since); }
+      else if (r.durMs){ t.textContent = fmt(r.durMs); }
+      l1.append(d, n, st, t);
+      const det = document.createElement('div'); det.className = 'sdet';
+      const when = r.since ? 'Started ' + new Date(r.since).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      det.textContent = [r.terminal ? 'Terminal: ' + r.terminal : '', when].filter(Boolean).join(' · ') || 'No more detail from this agent.';
+      row.append(l1, det);
+      row.addEventListener('click', e => { e.stopPropagation(); selId = selId === r.id ? '' : r.id; renderSessions(); requestAnimationFrame(layout); });
+      box.appendChild(row);
+    });
+    if (list.length > 5){ const m = document.createElement('div'); m.className = 'snone'; m.textContent = '+' + (list.length - 5) + ' more'; box.appendChild(m); }
+  }
+  function renderControls(){
+    const ent = S.ent || {};
+    $('entline').dataset.state = ent.state || ''; $('entText').textContent = ent.text || ''; $('entHint').textContent = ent.hint || '';
+    const o = $('cOpen'); o.innerHTML = (S.entOpen ? ICON.hide : ICON.open) + '<span></span>';
+    o.lastChild.textContent = S.entOpen ? 'Hide' : 'Open ' + (S.platformLabel || ''); o.dataset.a = S.entOpen ? 'hideEntertainment' : 'openEntertainment';
+    o.setAttribute('aria-label', S.entOpen ? 'Hide the entertainment window' : 'Open entertainment');
+    const m = $('cMute'); m.innerHTML = (S.muted ? ICON.unmute : ICON.mute) + '<span></span>'; m.lastChild.textContent = S.muted ? 'Unmute' : 'Mute';
+    m.setAttribute('aria-pressed', S.muted ? 'true' : 'false'); m.setAttribute('aria-label', S.muted ? 'Unmute sounds' : 'Mute sounds');
+  }
+  function paintToast(){
+    const id = S.toast ? S.toast.id : 0;
+    if (id === toastId) return;
+    toastId = id;
+    if (!S.toast) return;
+    $('toast').dataset.kind = S.toast.kind; $('tTitle').textContent = S.toast.title; $('tBody').textContent = S.toast.body || '';
+    if (S.toast.kind === 'done' || S.toast.kind === 'alldone' || S.toast.kind === 'error') sweep();
+  }
+
   /* ---- interaction: hover reveals, click toggles, leaving collapses unless a control is in use ---- */
   const toggle = () => { clearTimeout(dwellTimer); setExpanded(!expanded); };
   ['nr2','bar'].forEach(id => { $(id).addEventListener('click', toggle); $(id).addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggle(); } }); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && expanded) setExpanded(false); });
   $('sw').addEventListener('click', e => { e.stopPropagation(); send({t:'toggle'}); });
+  $('cOpen').addEventListener('click', e => { e.stopPropagation(); send({t: e.currentTarget.dataset.a || 'openEntertainment'}); });
+  $('cMute').addEventListener('click', e => { e.stopPropagation(); send({t:'toggleMute'}); });
+  $('tClose').addEventListener('click', e => { e.stopPropagation(); send({t:'dismissToast'}); });
   $('settings').addEventListener('click', e => { e.stopPropagation(); send({t:'openSettings'}); });
   document.addEventListener('contextmenu', e => { e.preventDefault(); send({t:'menu'}); });
   function scheduleCollapse(){
@@ -346,12 +447,13 @@ body.demo #wrap{margin:0 auto}
   if (!window.ipc){
     document.body.classList.add('demo'); $('menubarsim').style.display = 'block';
     const plats = [{key:'instagram',label:'Instagram',on:true},{key:'x',label:'X',on:true},{key:'youtube',label:'YouTube',on:true}];
-    const base = {status:'idle', label:'Idle', detail:'Waiting for an agent', agent:'', sessions:0, platform:'instagram', platformLabel:'Instagram', platforms:plats, enabled:true, compact:false, showStatus:true, corner:'top-center', notch:{w:190,h:34}};
+    const base = {status:'idle', label:'Idle', detail:'Waiting for an agent', agent:'', sessions:0, platform:'instagram', platformLabel:'Instagram', platforms:plats, ent:{state:'waiting',text:'Waiting for an agent',hint:''}, entOpen:false, muted:false, sessionList:[], enabled:true, compact:false, showStatus:true, corner:'top-center', notch:{w:190,h:34}};
     const ago = s => Date.now() - s * 1000;
     const presets = {
       idle: {},
-      working: {status:'working', label:'Claude Code is working', detail:'Claude Code · Instagram', agent:'Claude Code', terminal:'Terminal', sessions:1, statusText:'Working', since:ago(134)},
-      entertainment: {status:'entertainment', label:'Claude Code is working', detail:'Claude Code · Instagram', agent:'Claude Code', terminal:'Terminal', sessions:1, statusText:'Entertainment open', since:ago(61)},
+      working: {status:'working', label:'Claude Code is working', detail:'Claude Code · Instagram', agent:'Claude Code', terminal:'Terminal', sessions:1, statusText:'Working', since:ago(134), ent:{state:'hidden',text:'Entertainment hidden',hint:'Open it from here any time.'}, sessionList:[{id:'a',name:'Claude Code',act:'working',since:ago(134),terminal:'Terminal'}]},
+      entertainment: {status:'entertainment', label:'Claude Code is working', detail:'Claude Code · Instagram', agent:'Claude Code', terminal:'Terminal', sessions:1, statusText:'Entertainment open', since:ago(272), entOpen:true, ent:{state:'active',text:'Instagram active',hint:'Closes when the session finishes.'}, sessionList:[{id:'a',name:'Claude Code',act:'working',since:ago(272),terminal:'Terminal'}]},
+      multi: {status:'entertainment', label:'3 agents working', detail:'Claude Code, Cursor, Codex', agent:'Claude Code', terminal:'Terminal', sessions:3, statusText:'Working', since:ago(272), entOpen:true, ent:{state:'active',text:'Instagram active',hint:'Stays open until every session finishes.'}, sessionList:[{id:'a',name:'Claude Code',act:'working',since:ago(272),terminal:'Terminal'},{id:'b',name:'Cursor',act:'waiting',since:ago(138),terminal:'Cursor'},{id:'c',name:'Codex',act:'working',since:ago(106),terminal:'iTerm2'},{id:'d',name:'OpenCode',act:'done',durMs:95000}]},
       error: {status:'error', label:'Needs attention', detail:'Local bridge is not running'},
       paused: {status:'paused', label:'Paused', detail:'Automation is off', enabled:false}
     };
@@ -359,6 +461,12 @@ body.demo #wrap{margin:0 auto}
     const bar = document.createElement('div'); bar.id = 'demo';
     const add = (n, fn) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = n; b.addEventListener('click', fn); bar.appendChild(b); };
     Object.keys(presets).forEach(k => add(k, () => { cur = Object.assign({}, base, presets[k], {notch:cur.notch, corner:cur.corner}); apply(cur); }));
+    let tn = 0, tt = 0;
+    const toast = (kind, title, body) => add('toast: ' + kind, () => { cur = Object.assign({}, cur, {toast:{id:++tn, kind, title, body}}); apply(cur); clearTimeout(tt); tt = setTimeout(() => { cur = Object.assign({}, cur, {toast:null}); apply(cur); }, 4500); });
+    toast('started', 'Claude Code started working.', 'Instagram is opening.');
+    toast('done', 'Claude Code completed.', 'Cursor is still working. Instagram stays open.');
+    toast('alldone', 'All coding sessions completed.', 'Your entertainment window is closing.');
+    toast('error', 'Claude Code encountered an error.', 'Check your coding session.');
     add('finish', () => { cur = Object.assign({}, base, {notch:cur.notch, corner:cur.corner}); apply(cur); });
     add('notch on/off', () => { cur.notch = cur.notch ? null : {w:190,h:34}; apply(cur); });
     add('dark backdrop', () => document.body.classList.toggle('dark'));
