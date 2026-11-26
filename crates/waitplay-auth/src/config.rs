@@ -1,7 +1,7 @@
 //! Which Supabase project to talk to. Both values are public by design (the project URL and the publishable/anon key ship inside
 //! every client; Row Level Security protects the data). The service-role key must never appear anywhere in this repository.
 
-/// Build-time overrides: `WAITPLAY_SUPABASE_URL`, `WAITPLAY_SUPABASE_ANON_KEY`. The defaults are the WaitPlay project.
+/// Build-time overrides: `WAITPLAY_SUPABASE_URL`, `WAITPLAY_SUPABASE_ANON_KEY`. The defaults are the Vibe Play project.
 const URL: &str = match option_env!("WAITPLAY_SUPABASE_URL") {
     Some(u) => u,
     None => "https://gvuqncuejklrsaaphsrq.supabase.co",

@@ -25,7 +25,7 @@ export const FAQSection: React.FC = () => {
           </EditorialHeading>
 
           <p className="font-sans text-[17px] sm:text-[19px] text-[#666666] leading-[1.6]">
-            Everything you need to know about WaitPlay's local bridge, agent integration hooks, and privacy model.
+            Everything you need to know about Vibe Play's local bridge, agent integration hooks, and privacy model.
           </p>
         </div>
 

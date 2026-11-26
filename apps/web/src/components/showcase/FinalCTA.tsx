@@ -15,7 +15,7 @@ export const FinalCTA: React.FC<{ onOpenDashboard?: () => void }> = ({ onOpenDas
         </h2>
 
         <p className="font-sans text-base sm:text-lg text-ink-soft max-w-xl mx-auto leading-relaxed">
-          Clone the repository, launch the desktop widget, and let WaitPlay automatically turn agent downtime into cognitive focus.
+          Clone the repository, launch the desktop widget, and let Vibe Play automatically turn agent downtime into cognitive focus.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
@@ -25,7 +25,7 @@ export const FinalCTA: React.FC<{ onOpenDashboard?: () => void }> = ({ onOpenDas
             rel="noopener noreferrer"
             className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 text-base font-sans font-semibold px-8 py-4 rounded-xl bg-lavender text-ink border border-ink/15 hover:bg-lavender-hover hover:shadow-subtle hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer shadow-subtle"
           >
-            <span>Download WaitPlay Free</span>
+            <span>Download Vibe Play Free</span>
             <ArrowRight className="w-4 h-4" />
           </a>
 

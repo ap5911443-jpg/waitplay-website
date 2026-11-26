@@ -137,7 +137,7 @@ async fn handle(state: Arc<BridgeState>, remote: SocketAddr, mut req: Request<In
     match security::loopback_only(&remote, header_str(&parts.headers, header::HOST)) {
         LoopbackVerdict::Allowed => {}
         LoopbackVerdict::NonLoopback => {
-            return error_json(403, "Forbidden", "WaitPlay bridge only accepts connections from localhost/loopback.");
+            return error_json(403, "Forbidden", "Vibe Play bridge only accepts connections from localhost/loopback.");
         }
         LoopbackVerdict::BadHost(host) => {
             return error_json(400, "Bad Request", &format!("Invalid host \"{}\". Requests must target localhost or 127.0.0.1.", host));
@@ -149,7 +149,7 @@ async fn handle(state: Arc<BridgeState>, remote: SocketAddr, mut req: Request<In
     if let Some(origin) = parts.headers.get(header::ORIGIN).cloned() {
         match origin.to_str() {
             Ok(o) if security::origin_allowed(o) => cors.push((header::ACCESS_CONTROL_ALLOW_ORIGIN, origin)),
-            _ => return error_json(500, "Internal Server Error", "Not allowed by WaitPlay Bridge CORS policy"),
+            _ => return error_json(500, "Internal Server Error", "Not allowed by Vibe Play Bridge CORS policy"),
         }
     }
     cors.push((header::VARY, HeaderValue::from_static("Origin")));
@@ -248,7 +248,7 @@ fn reject(state: &BridgeState, what: &str) -> Resp {
         return too_many("Too many failed authentication attempts. Try again in a minute.");
     }
     if state.limits.auth_log.allow() {
-        eprintln!("[WaitPlay Bridge] rejected unauthenticated request: {}", what);
+        eprintln!("[Vibe Play Bridge] rejected unauthenticated request: {}", what);
     }
     unauthorized()
 }
@@ -408,12 +408,12 @@ fn handle_ws_upgrade(state: Arc<BridgeState>, remote: SocketAddr, req: &mut Requ
 
     match security::loopback_only(&remote, header_str(headers, header::HOST)) {
         LoopbackVerdict::Allowed => {}
-        LoopbackVerdict::NonLoopback => return error_json(403, "Forbidden", "WaitPlay bridge only accepts connections from localhost/loopback."),
+        LoopbackVerdict::NonLoopback => return error_json(403, "Forbidden", "Vibe Play bridge only accepts connections from localhost/loopback."),
         LoopbackVerdict::BadHost(host) => return error_json(400, "Bad Request", &format!("Invalid host \"{}\". Requests must target localhost or 127.0.0.1.", host)),
     }
     if let Some(origin) = headers.get(header::ORIGIN) {
         if !origin.to_str().is_ok_and(security::origin_allowed) {
-            return error_json(403, "Forbidden", "Origin not allowed by the WaitPlay bridge.");
+            return error_json(403, "Forbidden", "Origin not allowed by the Vibe Play bridge.");
         }
     }
     let offered = header_str(headers, header::SEC_WEBSOCKET_PROTOCOL).unwrap_or("");
@@ -422,7 +422,7 @@ fn handle_ws_upgrade(state: Arc<BridgeState>, remote: SocketAddr, req: &mut Requ
         return reject(&state, "WebSocket /ws");
     }
     if hub.connected_count() >= limits::MAX_WS_CLIENTS {
-        return error_json(503, "Service Unavailable", "Too many WebSocket clients are connected to the WaitPlay bridge.");
+        return error_json(503, "Service Unavailable", "Too many WebSocket clients are connected to the Vibe Play bridge.");
     }
     let select_v1 = offered.split(',').any(|p| p.trim() == "waitplay.v1");
 

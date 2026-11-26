@@ -54,7 +54,7 @@ pub use self::other::*;
 //   pub fn show_window(id: WindowId, activate: bool)          // show an own/other window; activate=false: SW_SHOWNOACTIVATE
 //   pub fn hide_window(id: WindowId)                          // SW_HIDE at the OS level (tao's set_visible(false) is a no-op for a raw-shown window)
 //   pub fn is_waitplay_window(id: WindowId) -> bool           // same process, or a process with our executable name
-//   pub fn other_companion_visible() -> bool                  // another waitplay process shows a companion window (title "WaitPlay"; the widget's title is "WaitPlay Widget")
+//   pub fn other_companion_visible() -> bool                  // another waitplay process shows a companion window (title "Vibe Play"; the widget's title is "Vibe Play Widget")
 //   pub fn parent_pid(pid: u32) -> u32                        // 0 if unknown
 //   pub fn process_tree(root: u32) -> Vec<u32>                // root plus every descendant (parent-pid walk over a snapshot)
 //   pub fn find_top_window_for_pid(pid: u32) -> WindowId      // port of ParentWindowTracker.FindTopWindowForPid

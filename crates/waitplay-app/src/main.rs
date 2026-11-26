@@ -1,4 +1,4 @@
-//! WaitPlay desktop app: the tray application (no arguments or `--widget`: tray icon, floating widget, settings) and the companion
+//! Vibe Play desktop app: the tray application (no arguments or `--widget`: tray icon, floating widget, settings) and the companion
 //! window that shows Instagram, YouTube or X while a coding agent works. One executable, same command line as the C# build (see `cli`).
 
 #![cfg_attr(windows, windows_subsystem = "windows")]
@@ -43,7 +43,7 @@ fn main() {
         platform::attach_parent_console();
         let enabled = state::toggle();
         BridgeClient::new().post_state(enabled);
-        println!("WaitPlay enabled: {}", if enabled { "True" } else { "False" });
+        println!("Vibe Play enabled: {}", if enabled { "True" } else { "False" });
         return;
     }
 
@@ -66,7 +66,7 @@ fn main() {
         state::set_enabled(true);
         BridgeClient::new().post_state(true);
     }
-    // WaitPlay is OFF and nobody asked for a window explicitly: stay silent
+    // Vibe Play is OFF and nobody asked for a window explicitly: stay silent
     if !args.force_open && !args.widget && !enabled {
         return;
     }

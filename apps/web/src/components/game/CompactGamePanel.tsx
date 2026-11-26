@@ -70,7 +70,7 @@ export const CompactGamePanel: React.FC<CompactGamePanelProps> = ({
           </div>
           <div>
             <div className="flex items-center space-x-1.5">
-              <span className="text-sm font-serif font-normal text-ink">WaitPlay</span>
+              <span className="text-sm font-serif font-normal text-ink">Vibe Play</span>
               <AgentStatusBadge status={agentStatus} />
             </div>
             {taskElapsedSeconds > 0 && (

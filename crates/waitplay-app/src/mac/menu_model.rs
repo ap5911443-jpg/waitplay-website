@@ -73,7 +73,7 @@ pub fn build(status: Status, title: &str, enabled: bool, view: &SessionsView, de
     m.push(item("account", "Account\u{2026}"));
     m.push(item("settings", "Settings\u{2026}"));
     m.push(Entry::Separator);
-    m.push(item("quit", "Quit WaitPlay"));
+    m.push(item("quit", "Quit Vibe Play"));
     m
 }
 

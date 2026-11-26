@@ -1,4 +1,4 @@
-//! WaitPlay bridge: tracks coding-agent sessions over HTTP + WebSocket on 127.0.0.1, and serves the companion web UI.
+//! Vibe Play bridge: tracks coding-agent sessions over HTTP + WebSocket on 127.0.0.1, and serves the companion web UI.
 
 pub mod bridge;
 pub mod event_validator;

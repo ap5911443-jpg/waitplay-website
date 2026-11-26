@@ -75,7 +75,7 @@ impl AccountUi {
             return Ok(());
         }
         let window = WindowBuilder::new()
-            .with_title("WaitPlay Account")
+            .with_title("Vibe Play Account")
             .with_inner_size(LogicalSize::new(440.0, 700.0))
             .with_min_inner_size(LogicalSize::new(380.0, 560.0))
             .with_resizable(true)

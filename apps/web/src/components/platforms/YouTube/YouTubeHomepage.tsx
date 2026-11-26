@@ -243,7 +243,7 @@ export const YouTubeHomepage: React.FC = () => {
               <div className="w-0 h-0 border-y-[4px] border-y-transparent border-l-[7px] border-l-white ml-0.5" />
             </div>
             <span className="font-bold tracking-tighter text-lg text-white">YouTube</span>
-            <span className="text-[10px] text-[#AAAAAA] -mt-2.5 font-medium ml-0.5">WaitPlay</span>
+            <span className="text-[10px] text-[#AAAAAA] -mt-2.5 font-medium ml-0.5">Vibe Play</span>
           </div>
         </div>
 
@@ -361,7 +361,7 @@ export const YouTubeHomepage: React.FC = () => {
             <footer className="px-3 text-[10px] text-[#717171] leading-relaxed">
               <p>About Press Copyright</p>
               <p>Contact us Creators</p>
-              <p className="mt-2">© 2026 YouTube Recreation inside WaitPlay</p>
+              <p className="mt-2">© 2026 YouTube Recreation inside Vibe Play</p>
             </footer>
           </aside>
         ) : (

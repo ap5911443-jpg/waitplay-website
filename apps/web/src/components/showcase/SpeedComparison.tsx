@@ -14,7 +14,7 @@ export const SpeedComparison: React.FC = () => {
             </span>
             <h2 className="font-serif font-normal text-4xl sm:text-5xl lg:text-6xl leading-[1.04] text-canvas">
               Developer latency is focus lost. <br />
-              <span className="text-lavender italic">WaitPlay keeps you in the pocket.</span>
+              <span className="text-lavender italic">Vibe Play keeps you in the pocket.</span>
             </h2>
             <p className="font-sans text-base sm:text-lg text-canvas/80 leading-relaxed">
               When an AI agent runs a multi-step task, developers involuntarily switch tabs to Twitter, Slack, or YouTube. Gloria Mark’s research proves regaining deep coding focus takes 23 minutes.
@@ -29,7 +29,7 @@ export const SpeedComparison: React.FC = () => {
                 <div className="flex items-center justify-between text-xs font-sans font-semibold uppercase tracking-wider text-rose-300">
                   <div className="flex items-center space-x-1.5">
                     <AlertTriangle className="w-4 h-4" />
-                    <span>Without WaitPlay</span>
+                    <span>Without Vibe Play</span>
                   </div>
                   <span className="text-white/60">Passive Latency</span>
                 </div>
@@ -58,13 +58,13 @@ export const SpeedComparison: React.FC = () => {
               </div>
             </div>
 
-            {/* Right: WaitPlay Flow */}
+            {/* Right: Vibe Play Flow */}
             <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-white/20 space-y-6 flex flex-col justify-between relative overflow-hidden">
               <div className="space-y-4">
                 <div className="flex items-center justify-between text-xs font-sans font-semibold uppercase tracking-wider text-lavender">
                   <div className="flex items-center space-x-1.5">
                     <CheckCircle className="w-4 h-4 text-lavender" />
-                    <span>With WaitPlay Flow</span>
+                    <span>With Vibe Play Flow</span>
                   </div>
                   <span className="text-white/80 font-bold">Zero Context Switch</span>
                 </div>

@@ -33,7 +33,7 @@ impl AuthError {
     /// Text for the sign-in window. Never contains a token, a URL with a code or a stack of internals.
     pub fn user_message(&self) -> String {
         match self {
-            AuthError::Network(_) => "No connection. Check your internet and try again. WaitPlay keeps working offline.".into(),
+            AuthError::Network(_) => "No connection. Check your internet and try again. Vibe Play keeps working offline.".into(),
             AuthError::Unavailable => "The sign-in service is not responding. Try again in a moment.".into(),
             AuthError::RateLimited => "Too many attempts. Wait a minute and try again.".into(),
             AuthError::SessionExpired => "Your session expired. Please sign in again.".into(),
@@ -43,19 +43,19 @@ impl AuthError {
                 "user_already_exists" | "email_exists" => "An account with this email already exists. Sign in instead.".into(),
                 "otp_expired" => "That code expired or is not valid. Request a new one.".into(),
                 "weak_password" => "Choose a stronger password (at least 8 characters).".into(),
-                "over_email_send_rate_limit" => "Too many emails were requested. While WaitPlay is in testing, Supabase's built-in mail service allows only about 2 per hour. Try again later, or sign in another way.".into(),
+                "over_email_send_rate_limit" => "Too many emails were requested. While Vibe Play is in testing, Supabase's built-in mail service allows only about 2 per hour. Try again later, or sign in another way.".into(),
                 "over_request_rate_limit" => "Too many attempts. Wait a minute and try again.".into(),
-                "email_address_not_authorized" => "This address can't receive emails yet: while WaitPlay is in testing, emails are sent only to the project team's addresses. Use Google, or a password account, instead.".into(),
+                "email_address_not_authorized" => "This address can't receive emails yet: while Vibe Play is in testing, emails are sent only to the project team's addresses. Use Google, or a password account, instead.".into(),
                 "email_address_invalid" => "That email address isn't accepted. Check it for typos.".into(),
                 "otp_disabled" | "user_not_found" => "No account exists for that email yet. Choose Create account first.".into(),
-                _ if message.to_lowercase().contains("not authorized") => "This address can't receive emails yet: while WaitPlay is in testing, emails are sent only to the project team's addresses. Use Google, or a password account, instead.".into(),
+                _ if message.to_lowercase().contains("not authorized") => "This address can't receive emails yet: while Vibe Play is in testing, emails are sent only to the project team's addresses. Use Google, or a password account, instead.".into(),
                 "signup_disabled" => "New accounts are disabled right now.".into(),
                 "same_password" => "The new password must be different from the old one.".into(),
                 _ if !message.is_empty() => message.clone(),
                 _ => "The request was refused.".into(),
             },
             AuthError::Callback(m) => m.clone(),
-            AuthError::Storage(_) => "WaitPlay could not use the system keychain to store your sign-in.".into(),
+            AuthError::Storage(_) => "Vibe Play could not use the system keychain to store your sign-in.".into(),
             AuthError::NotConfigured => "Sign-in is not available in this build.".into(),
             AuthError::State(m) => (*m).into(),
         }

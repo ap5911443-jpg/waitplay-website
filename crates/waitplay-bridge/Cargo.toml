@@ -3,7 +3,7 @@ name = "waitplay-bridge"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "WaitPlay local companion bridge (HTTP + WebSocket on loopback) and the static web server for the companion UI"
+description = "Vibe Play local companion bridge (HTTP + WebSocket on loopback) and the static web server for the companion UI"
 
 [lib]
 name = "waitplay_bridge"

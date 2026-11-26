@@ -82,7 +82,7 @@ pub struct Settings {
     pub preferred_platform: String,
     pub on_finish: OnFinish,
     pub shortcuts: Shortcuts,
-    /// Agents whose watcher process WaitPlay runs (`opencode`, `codex`, ...). Internal: the settings page changes it through the
+    /// Agents whose watcher process Vibe Play runs (`opencode`, `codex`, ...). Internal: the settings page changes it through the
     /// install/remove actions, not through `set`.
     pub watchers: Vec<String>,
 }

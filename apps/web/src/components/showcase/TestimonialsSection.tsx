@@ -4,7 +4,7 @@ export const TestimonialsSection: React.FC = () => {
   const testimonials = [
     {
       quote:
-        "“Waiting 45 seconds for Claude Code to refactor a file used to destroy my momentum. I’d open Twitter and lose 20 minutes. WaitPlay gives me an instant brain break and drops me right back into terminal flow.”",
+        "“Waiting 45 seconds for Claude Code to refactor a file used to destroy my momentum. I’d open Twitter and lose 20 minutes. Vibe Play gives me an instant brain break and drops me right back into terminal flow.”",
       author: "Alex Rivers",
       role: "Staff Infrastructure Engineer",
       team: "Multi-Agent Systems",

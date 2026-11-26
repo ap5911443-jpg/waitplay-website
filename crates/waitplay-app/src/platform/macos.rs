@@ -1,11 +1,11 @@
 //! macOS implementation of the platform contract (see `platform/mod.rs`).
 //!
 //! A `WindowId` on macOS is the PID of an application. macOS exposes no per-window id to other apps without the Screen Recording
-//! permission, and WaitPlay does not need one: the companion shows while the application that hosts the agent's terminal is in
+//! permission, and Vibe Play does not need one: the companion shows while the application that hosts the agent's terminal is in
 //! front. Nothing here needs Accessibility or Screen Recording: the frontmost application comes from `NSWorkspace`.
 //!
 //! Not provided on macOS (neutral answers, by design): terminal tab tracking and "typing in the terminal steps the window aside"
-//! (both need the Accessibility permission, which WaitPlay does not ask for), window rectangles of other apps.
+//! (both need the Accessibility permission, which Vibe Play does not ask for), window rectangles of other apps.
 
 use super::{Rect, WindowId, NO_WINDOW};
 use crate::placement::{LRect, Screen};
@@ -96,7 +96,7 @@ fn exe_name_of(pid: u32) -> Option<String> {
     path.rsplit('/').next().map(str::to_string)
 }
 
-/// Our own process, or another WaitPlay process (the widget or a companion of another site).
+/// Our own process, or another Vibe Play process (the widget or a companion of another site).
 pub fn is_waitplay_window(id: WindowId) -> bool {
     let pid = window_pid(id);
     if pid == 0 {
@@ -112,7 +112,7 @@ pub fn is_waitplay_window(id: WindowId) -> bool {
     }
 }
 
-/// Another WaitPlay process has its companion on screen (so a shared browser must not be trimmed).
+/// Another Vibe Play process has its companion on screen (so a shared browser must not be trimmed).
 pub fn other_companion_visible() -> bool {
     let me = std::process::id();
     waitplay_core::companion_state::live().iter().any(|s| s.visible && s.pid != me)
@@ -297,7 +297,7 @@ pub mod memory {
     pub fn trim_self() {}
 }
 
-/// Terminal tab tracking needs the Accessibility permission, which WaitPlay does not request.
+/// Terminal tab tracking needs the Accessibility permission, which Vibe Play does not request.
 pub struct TabTracker;
 
 impl TabTracker {
@@ -331,7 +331,7 @@ impl ForegroundWatcher {
     }
 }
 
-/// Standard application menu (WaitPlay, Edit, Window) so the usual shortcuts work inside the web pages: without an Edit menu
+/// Standard application menu (Vibe Play, Edit, Window) so the usual shortcuts work inside the web pages: without an Edit menu
 /// WKWebView ignores Cmd+C / Cmd+V / Cmd+A, and signing in to a site needs paste. Call once on the main thread.
 pub fn install_main_menu(app_name: &str) {
     use tray_icon::menu::{Menu, PredefinedMenuItem, Submenu};

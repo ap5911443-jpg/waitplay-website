@@ -129,7 +129,7 @@ export const HeroProductDemo: React.FC = () => {
               </div>
               <div className="mt-2 text-[#888888] flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#00f3ff] animate-ping" />
-                <span>[WaitPlay Event Dispatcher]: State working, duration {seconds}s</span>
+                <span>[Vibe Play Event Dispatcher]: State working, duration {seconds}s</span>
               </div>
             </div>
 

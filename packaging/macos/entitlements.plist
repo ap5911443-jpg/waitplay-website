@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Hardened Runtime needs no exceptions: WKWebView renders in Apple's own signed WebContent process, and WaitPlay
+	<!-- Hardened Runtime needs no exceptions: WKWebView renders in Apple's own signed WebContent process, and Vibe Play
 	     does not use the camera, microphone, location, contacts or Apple Events. -->
 </dict>
 </plist>

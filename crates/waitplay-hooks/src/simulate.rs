@@ -36,13 +36,13 @@ fn post(event: &str, extra: Option<Map<String, Value>>) {
 
 pub fn run() {
     println!("====================================================");
-    println!("  WaitPlay 25-Second Test Mode Simulation");
+    println!("  Vibe Play 25-Second Test Mode Simulation");
     println!("====================================================");
     println!("-> [0s] User submits prompt: \"Refactor auth PKCE flow\"");
     println!("-> Emitting task_started event to Localhost Bridge...");
     post("task_started", Some(obj(vec![("prompt", json!("Refactor auth PKCE flow to OAuth 2.0"))])));
 
-    println!("-> Launching Native WaitPlay Companion Game...");
+    println!("-> Launching Native Vibe Play Companion Game...");
     common::spawn_app_raw(&["--session=omp-session".to_string(), "--terminal=Term - 1".to_string(), "--game".to_string()]);
 
     let start = Instant::now();

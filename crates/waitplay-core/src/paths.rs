@@ -1,11 +1,11 @@
-//! Where WaitPlay keeps its small cross-process files, and where its executables live.
+//! Where Vibe Play keeps its small cross-process files, and where its executables live.
 
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
 /// `<temp>/waitplay`: hand-off files between hooks, the bridge and the companion app. Every process derives it the same
-/// way (`std::env::temp_dir`), so an isolated `TEMP`/`TMPDIR` isolates a whole WaitPlay instance.
+/// way (`std::env::temp_dir`), so an isolated `TEMP`/`TMPDIR` isolates a whole Vibe Play instance.
 pub fn signal_dir() -> PathBuf {
     std::env::temp_dir().join("waitplay")
 }
@@ -28,7 +28,7 @@ fn looks_like_repo(dir: &Path) -> bool {
     dir.join("package.json").is_file() && dir.join("integrations").is_dir()
 }
 
-/// The WaitPlay checkout: `WAITPLAY_HOME`, else the nearest ancestor of the running executable that looks like the repo.
+/// The Vibe Play checkout: `WAITPLAY_HOME`, else the nearest ancestor of the running executable that looks like the repo.
 pub fn repo_root() -> Option<PathBuf> {
     if let Ok(h) = std::env::var("WAITPLAY_HOME") {
         let p = PathBuf::from(h.trim());

@@ -1,4 +1,4 @@
-//! The permission screen's content for Windows. Windows has no per-app privacy prompts for what WaitPlay does: agent events travel
+//! The permission screen's content for Windows. Windows has no per-app privacy prompts for what Vibe Play does: agent events travel
 //! over loopback, nothing captures the screen, and the browser engine asks the user itself before any site may use a camera or
 //! microphone. This list says so explicitly (and links to the "Startup apps" page where the one user-controllable item, launch at
 //! login, can be switched off) instead of asking for anything it does not use.
@@ -19,8 +19,8 @@ pub fn list(launch_at_login: bool) -> Value {
         {
             "id": "startupApps",
             "title": "Startup apps",
-            "why": "Lets WaitPlay start by itself when you sign in to Windows.",
-            "affects": "Launch at login. If you switch WaitPlay off under Startup apps in Windows Settings, it will not start automatically.",
+            "why": "Lets Vibe Play start by itself when you sign in to Windows.",
+            "affects": "Launch at login. If you switch Vibe Play off under Startup apps in Windows Settings, it will not start automatically.",
             "state": if launch_at_login { "unknown" } else { "notRequired" },
             "canOpen": true,
             "pane": "startupApps"
@@ -28,7 +28,7 @@ pub fn list(launch_at_login: bool) -> Value {
         {
             "id": "input",
             "title": "Keyboard and mouse",
-            "why": "WaitPlay does not record what you type. While the entertainment window is open it only notices that you are typing or scrolling in the terminal that started the agent, so it can step aside.",
+            "why": "Vibe Play does not record what you type. While the entertainment window is open it only notices that you are typing or scrolling in the terminal that started the agent, so it can step aside.",
             "affects": "Nothing is stored or sent anywhere.",
             "state": "notRequired",
             "canOpen": false,
@@ -37,7 +37,7 @@ pub fn list(launch_at_login: bool) -> Value {
         {
             "id": "screenCapture",
             "title": "Screen capture",
-            "why": "WaitPlay never captures your screen, so it does not ask for this.",
+            "why": "Vibe Play never captures your screen, so it does not ask for this.",
             "affects": "Nothing.",
             "state": "notRequired",
             "canOpen": false,
@@ -46,7 +46,7 @@ pub fn list(launch_at_login: bool) -> Value {
         {
             "id": "network",
             "title": "Network",
-            "why": "Coding agents report to WaitPlay over 127.0.0.1, inside your PC. The entertainment sites use your normal internet connection.",
+            "why": "Coding agents report to Vibe Play over 127.0.0.1, inside your PC. The entertainment sites use your normal internet connection.",
             "affects": "Nothing leaves your PC except the sites you open.",
             "state": "notRequired",
             "canOpen": false,

@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
-<title>WaitPlay Widget</title>
+<title>Vibe Play Widget</title>
 <style>
-/* WaitPlay Liquid Glass bar.
+/* Vibe Play Liquid Glass bar.
    In the app the glass itself (blur, vibrancy, light/dark adaptation, Reduce Transparency) is a native NSVisualEffectView placed
    behind this transparent page and shaped to #pill; this page only draws the light on top of it: edge reflection, inner highlight,
    hairline border and the contents. Opened in a plain browser (demo mode) the same look is approximated with backdrop-filter. */
@@ -133,7 +133,7 @@ body.demo #wrap{margin:40px}
 <body>
 <div id="wrap" class="bottom right">
   <div id="pill" data-status="idle">
-    <div id="bar" role="button" tabindex="0" aria-label="Expand WaitPlay">
+    <div id="bar" role="button" tabindex="0" aria-label="Expand Vibe Play">
       <span id="icon">
         <svg viewBox="0 0 34 34" aria-hidden="true">
           <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b92ff"/><stop offset="1" stop-color="#4046e0"/></linearGradient></defs>
@@ -221,7 +221,7 @@ body.demo #wrap{margin:40px}
   }
   function setExpanded(on){
     expanded = on; pill.classList.toggle('open', on);
-    $('chev').setAttribute('aria-expanded', on ? 'true' : 'false'); $('bar').setAttribute('aria-label', on ? 'Collapse WaitPlay' : 'Expand WaitPlay');
+    $('chev').setAttribute('aria-expanded', on ? 'true' : 'false'); $('bar').setAttribute('aria-label', on ? 'Collapse Vibe Play' : 'Expand Vibe Play');
     layout();
   }
 

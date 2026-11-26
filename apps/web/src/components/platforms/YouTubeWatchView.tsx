@@ -61,7 +61,7 @@ export const YouTubeWatchView: React.FC<YouTubeWatchViewProps> = ({
     if (!commentInput.trim()) return;
     setComments([
       {
-        author: "You (WaitPlay)",
+        author: "You (Vibe Play)",
         avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
         text: commentInput.trim(),
         timeAgo: "Just now",
@@ -107,7 +107,7 @@ export const YouTubeWatchView: React.FC<YouTubeWatchViewProps> = ({
                   <span>Now Playing: {video.title.slice(0, 35)}...</span>
                 </div>
                 <p className="text-xs text-zinc-300 mt-1">
-                  WaitPlay Live Player • Streaming while agent reasons
+                  Vibe Play Live Player • Streaming while agent reasons
                 </p>
               </div>
             </div>

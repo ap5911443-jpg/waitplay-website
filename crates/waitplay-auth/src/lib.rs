@@ -1,4 +1,4 @@
-//! WaitPlay account sign-in on Supabase Auth.
+//! Vibe Play account sign-in on Supabase Auth.
 //!
 //! Layers, bottom to top: [`pkce`] / [`callback`] (browser flow primitives), [`gotrue`] (REST client), [`store`] (OS secret store),
 //! [`session`] (state machine: offline-safe refresh, sign-out), [`cloud`] (RLS-protected data), [`service`] (what the app calls).

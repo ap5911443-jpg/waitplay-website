@@ -10,13 +10,13 @@ export const PrivacySection: React.FC = () => {
       icon: <Lock className="w-5 h-5 text-[#F0D7FF]" />,
       title: "100% Local Loopback Only",
       description:
-        "The WaitPlay bridge binds exclusively to 127.0.0.1:3150. External interfaces and remote IP addresses are rejected at the TCP socket layer.",
+        "The Vibe Play bridge binds exclusively to 127.0.0.1:3150. External interfaces and remote IP addresses are rejected at the TCP socket layer.",
     },
     {
       icon: <EyeOff className="w-5 h-5 text-[#FFA946]" />,
       title: "No Telemetry, No Cloud",
       description:
-        "Agent hooks send status (idle, working, finished) and, only to show it in your own widget, the first 100 characters of your prompt or the agent's question, to the bridge on this computer. That text stays in the bridge's memory and is never written to disk by WaitPlay, never sent to a server and never forwarded to other programs. Your source files, diffs and API keys are not read.",
+        "Agent hooks send status (idle, working, finished) and, only to show it in your own widget, the first 100 characters of your prompt or the agent's question, to the bridge on this computer. That text stays in the bridge's memory and is never written to disk by Vibe Play, never sent to a server and never forwarded to other programs. Your source files, diffs and API keys are not read.",
     },
     {
       icon: <ShieldCheck className="w-5 h-5 text-[#F0D7FF]" />,
@@ -45,7 +45,7 @@ export const PrivacySection: React.FC = () => {
           </EditorialHeading>
 
           <p className="font-sans text-[17px] sm:text-[19px] text-[#FFFFEB]/85 leading-[1.6]">
-            Developer tools should never compromise on privacy. WaitPlay has no analytics and works fully without an account: everything it knows about your agents stays on your machine. The only outgoing connections are the entertainment site you choose to open, SMS through Twilio if you set it up, and, only if you choose to create an optional account, sign-in with Supabase.
+            Developer tools should never compromise on privacy. Vibe Play has no analytics and works fully without an account: everything it knows about your agents stays on your machine. The only outgoing connections are the entertainment site you choose to open, SMS through Twilio if you set it up, and, only if you choose to create an optional account, sign-in with Supabase.
           </p>
         </div>
 

@@ -60,7 +60,7 @@ STAGE="$OUT/dmg"
 mkdir -p "$STAGE"
 cp -R "$APP" "$STAGE/"
 ln -s /Applications "$STAGE/Applications"
-hdiutil create -volname "WaitPlay" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
+hdiutil create -volname "Vibe Play" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
 rm -rf "$STAGE"
 [ "$IDENTITY" = "-" ] || codesign --force --timestamp --sign "$IDENTITY" ${KEYCHAIN_ARGS[@]+"${KEYCHAIN_ARGS[@]}"} "$DMG"
 

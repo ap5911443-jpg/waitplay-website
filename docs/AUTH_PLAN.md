@@ -1,4 +1,4 @@
-# WaitPlay authentication: implementation plan (Supabase)
+# Vibe Play authentication: implementation plan (Supabase)
 
 Status: **plan only, nothing implemented.** Written after inspecting the repository (see section 1). Items marked **DECISION** need an
 answer from you; items marked **NEEDS YOU** need a dashboard action or a value only you can provide.
@@ -47,7 +47,7 @@ Local features never import the auth crate: it is optional at runtime and at com
    `127.0.0.1:<port>`, path nonce equals ours (constant-time compare), nonce unused (single use, then the listener closes, which is
    the replay protection), `code` present, no `error`. Anything else gets a plain 400 page and **does not** consume the flow.
 4. Rust exchanges the code: `POST /auth/v1/token?grant_type=pkce` with `{auth_code, code_verifier}`. The verifier never leaves memory.
-5. The browser tab shows a tiny self-contained "You can return to WaitPlay" page (no external resources, `Referrer-Policy: no-referrer`).
+5. The browser tab shows a tiny self-contained "You can return to Vibe Play" page (no external resources, `Referrer-Policy: no-referrer`).
 
 Why loopback and not `waitplay://`: identical on Windows and macOS, needs no registry/plist change, works for unsigned builds, and
 the redirect target is not claimable by another app (a custom scheme can be registered by anything). To verify at implementation:
@@ -123,7 +123,7 @@ The service-role key never exists in this repository, the app, CI logs or your m
 A's rows in every table, that `anon` sees nothing, that clients cannot edit `entitlements`, and that the device limit holds. Run with
 `supabase test db` (Docker) locally and in CI.
 
-## 7. UI (follows the existing WaitPlay look: glass panel, system font stack, same switch/segmented/button components)
+## 7. UI (follows the existing Vibe Play look: glass panel, system font stack, same switch/segmented/button components)
 
 - **Sign-in window** (one small window, opened from tray menu "Sign in..." and from Settings > Account): Continue with Google, Continue
   with Apple (disabled until configured), Continue with email; email screen toggles Sign in / Create account; password field with

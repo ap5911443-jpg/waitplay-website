@@ -1,4 +1,4 @@
-//! Launch at login through the per-user Run key (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, value `WaitPlay`): the
+//! Launch at login through the per-user Run key (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, value `Vibe Play`): the
 //! documented mechanism that needs no helper and no elevation. One value named after the app means enabling twice can never create
 //! two entries; it is rewritten on every start when the app was moved, so the login item always points at the installed copy.
 //! Windows' own "Startup apps" page lists the entry and can switch it off (that is stored by Windows in `StartupApproved`, which

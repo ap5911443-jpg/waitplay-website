@@ -263,7 +263,7 @@ fn run(shared: Arc<Shared>, site_key: &'static str, owns: bool, started_at: i64,
     }
 }
 
-/// The widget's "Quit companion" / WaitPlay-off writes this file. A normal close only hides us, so quitting has to be asked for; a
+/// The widget's "Quit companion" / Vibe Play-off writes this file. A normal close only hides us, so quitting has to be asked for; a
 /// clean exit is what lets the browser flush cookies. A stale file can't end a companion that started afterwards.
 fn quit_requested(started_at: i64) -> bool {
     let Ok(text) = fs::read_to_string(signals::quit_file_path()) else { return false };

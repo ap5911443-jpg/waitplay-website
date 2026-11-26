@@ -9,13 +9,13 @@ Project: `https://gvuqncuejklrsaaphsrq.supabase.co` (Free plan). The app talks t
 | Path | What |
 |---|---|
 | `crates/waitplay-auth/` | Rust: PKCE, loopback callback, Supabase REST client, OS secret store (Windows Credential Manager, macOS Keychain), session manager, account service. 38 automated tests + 2 opt-in live checks. |
-| `crates/waitplay-app/src/account_ui.rs`, `assets/account.html` | The sign-in / account window, shared by Windows and macOS (plain HTML/JS like the other WaitPlay windows). Opened from the tray menu (**Account...**) and **Settings > General > Account**. |
+| `crates/waitplay-app/src/account_ui.rs`, `assets/account.html` | The sign-in / account window, shared by Windows and macOS (plain HTML/JS like the other Vibe Play windows). Opened from the tray menu (**Account...**) and **Settings > General > Account**. |
 | `supabase/migrations/20260101000000_auth_foundation.sql` | Tables, Row Level Security, triggers, `register_device()` / `revoke_device()`. |
 | `supabase/tests/rls.test.sql` | pgTAP: 34 assertions that user B cannot see or change user A's data, `anon` sees nothing, clients cannot edit their plan or status, the device limit holds. |
 | `supabase/functions/delete-account/` | Edge Function (Deno) that deletes the caller's account using the service-role key that Supabase injects server-side. |
 
 Build-time configuration (both values are public): `WAITPLAY_SUPABASE_URL` and `WAITPLAY_SUPABASE_ANON_KEY`. If unset, the values of
-the WaitPlay project above are compiled in. A build whose key starts with `sb_secret_` or contains `service_role` is refused at runtime.
+the Vibe Play project above are compiled in. A build whose key starts with `sb_secret_` or contains `service_role` is refused at runtime.
 
 ## 2. One-time dashboard setup (you)
 
@@ -23,7 +23,7 @@ the WaitPlay project above are compiled in. A build whose key starts with `sb_se
 2. **Authentication > Providers > Email**: enabled. Turn **Confirm email ON**. Set **Email OTP length** to 6. Minimum password length 8.
 3. **Authentication > Email Templates**: replace the body of these three templates so the user gets a code instead of a link:
    - *Confirm signup* and *Magic link*:
-     `<h2>Your WaitPlay code</h2><p>Enter this code in WaitPlay:</p><p style="font-size:28px;letter-spacing:6px"><b>{{ .Token }}</b></p><p>It expires in one hour. If you did not ask for it, ignore this email.</p>`
+     `<h2>Your Vibe Play code</h2><p>Enter this code in Vibe Play:</p><p style="font-size:28px;letter-spacing:6px"><b>{{ .Token }}</b></p><p>It expires in one hour. If you did not ask for it, ignore this email.</p>`
    - *Reset password*: the same text with "to reset your password".
 4. **Authentication > URL Configuration**: *Site URL* = your website; add to *Redirect URLs*: `http://127.0.0.1:*/auth/callback/*` (Supabase's `*` matches any characters except `.` and `/`, which covers the random port; if the dashboard rejects the pattern, tell me and I will switch to a fixed port).
 5. **Authentication > Providers > Google**: enable it; enter the Client ID and Client Secret **in the dashboard** (see section 3).
@@ -33,7 +33,7 @@ the WaitPlay project above are compiled in. A build whose key starts with `sb_se
 
 ## 3. Google
 
-1. console.cloud.google.com > create a project > *APIs & Services > OAuth consent screen*: External, app name **WaitPlay**, your support email, privacy policy link (`https://github.com/ap5911443-jpg/waitplay-website/blob/main/docs/PRIVACY.md`), scopes **openid, email, profile** only. Leave it in *Testing* while you test (up to 100 test users you add by email); publishing and showing your brand to everyone needs a verified domain you own.
+1. console.cloud.google.com > create a project > *APIs & Services > OAuth consent screen*: External, app name **Vibe Play**, your support email, privacy policy link (`https://github.com/ap5911443-jpg/waitplay-website/blob/main/docs/PRIVACY.md`), scopes **openid, email, profile** only. Leave it in *Testing* while you test (up to 100 test users you add by email); publishing and showing your brand to everyone needs a verified domain you own.
 2. *Credentials > Create credentials > OAuth client ID* > type **Web application** > *Authorized redirect URI*: `https://gvuqncuejklrsaaphsrq.supabase.co/auth/v1/callback`.
 3. Copy the Client ID and Client Secret into Supabase (Providers > Google). **Do not send the secret to anyone.**
 
@@ -50,9 +50,9 @@ Apple: implemented behind a disabled button; it needs the paid Apple Developer m
 
 ## 4b. Testing email flows with Supabase's built-in mail service (no custom domain yet)
 
-Until WaitPlay has its own domain and an SMTP provider (planned: Resend), the project uses Supabase's built-in sender. Its documented
+Until Vibe Play has its own domain and an SMTP provider (planned: Resend), the project uses Supabase's built-in sender. Its documented
 restrictions: it **only delivers to addresses that are members of your Supabase organization** (anything else fails with *Email
-address not authorized*), it is limited to about **2 emails per hour**, and the limit can change. WaitPlay shows plain explanations for
+address not authorized*), it is limited to about **2 emails per hour**, and the limit can change. Vibe Play shows plain explanations for
 both (see `crates/waitplay-auth/src/error.rs`). Do not put a made-up sender address or an SMTP provider in the dashboard.
 
 | Flow | How to test it today |

@@ -3,7 +3,7 @@ name = "waitplay-auth"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "WaitPlay account sign-in (Supabase Auth): PKCE, loopback callback, OS-protected session storage, offline-safe session manager"
+description = "Vibe Play account sign-in (Supabase Auth): PKCE, loopback callback, OS-protected session storage, offline-safe session manager"
 
 [dependencies]
 waitplay-core.workspace = true

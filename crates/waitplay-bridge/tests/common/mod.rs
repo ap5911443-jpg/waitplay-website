@@ -11,7 +11,7 @@ use waitplay_bridge::bridge::{self, Bridge};
 
 static ISOLATE: Once = Once::new();
 
-/// Points TEMP and the WaitPlay checkout at a throwaway directory so tests never touch a live WaitPlay's files.
+/// Points TEMP and the Vibe Play checkout at a throwaway directory so tests never touch a live Vibe Play's files.
 pub fn isolate_env() {
     ISOLATE.call_once(|| {
         let dir = std::env::temp_dir().join(format!("waitplay-bridge-test-{}", std::process::id()));

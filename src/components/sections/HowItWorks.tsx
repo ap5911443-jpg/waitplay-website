@@ -34,7 +34,7 @@ export const HowItWorks: React.FC = () => {
               Hooks naturally into your agent's lifecycle.
             </EditorialHeading>
             <p className="font-sans text-[16px] text-[#666666] leading-[1.6] mb-6">
-              Zero manual toggles. WaitPlay listens for prompt submission and tool call dispatch across Claude Code, Cursor, OMP, Codex, and Cline via localhost loopback sockets.
+              Zero manual toggles. Vibe Play listens for prompt submission and tool call dispatch across Claude Code, Cursor, OMP, Codex, and Cline via localhost loopback sockets.
             </p>
             <div className="flex flex-wrap gap-2">
               <span className="px-3 py-1 rounded-full text-[12px] font-semibold bg-[#E4E4D0]/60 text-[#1A1A1A] border border-[rgba(26,26,26,0.08)]">
@@ -82,7 +82,7 @@ module.exports = async function onAgentEvent(event) {
               <div className="flex items-center justify-between pb-3 mb-5 border-b border-[rgba(26,26,26,0.08)]">
                 <span className="font-sans font-semibold text-[14px] text-[#1A1A1A] flex items-center gap-2">
                   <Gamepad2 className="w-4 h-4 text-[#034F46]" />
-                  WaitPlay Micro-Suite
+                  Vibe Play Micro-Suite
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#F0D7FF] text-[#1A1A1A]">
                   Fast 15-45s Sessions
@@ -130,7 +130,7 @@ module.exports = async function onAgentEvent(event) {
               Playful micro-bursts, calibrated for agent wait times.
             </EditorialHeading>
             <p className="font-sans text-[16px] text-[#666666] leading-[1.6] mb-6">
-              Rather than letting your attention fracture across social media feeds, WaitPlay channels your cognitive energy into delightful 20-second puzzles that leave you alert and focused.
+              Rather than letting your attention fracture across social media feeds, Vibe Play channels your cognitive energy into delightful 20-second puzzles that leave you alert and focused.
             </p>
             <div className="p-4 rounded-[16px] bg-[#E4E4D0]/60 border border-[rgba(26,26,26,0.1)] flex items-center gap-3">
               <span className="w-8 h-8 rounded-full bg-[#FFA946] flex items-center justify-center font-bold text-[#1A1A1A] text-sm">
@@ -153,7 +153,7 @@ module.exports = async function onAgentEvent(event) {
               Never steals focus. Return when you're ready.
             </EditorialHeading>
             <p className="font-sans text-[16px] text-[#666666] leading-[1.6] mb-6">
-              When your agent finishes its turn, WaitPlay avoids intrusive popups that steal your cursor. A quiet completion badge appears with session duration metrics, letting you wrap up your game or hit Return to inspect diffs.
+              When your agent finishes its turn, Vibe Play avoids intrusive popups that steal your cursor. A quiet completion badge appears with session duration metrics, letting you wrap up your game or hit Return to inspect diffs.
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3.5 rounded-[14px] bg-[#FFFFFF] border border-[rgba(26,26,26,0.1)] shadow-subtle">

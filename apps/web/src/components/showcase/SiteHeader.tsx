@@ -21,7 +21,7 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
             <Gamepad2 className="w-4.5 h-4.5" />
           </div>
           <div className="flex items-baseline space-x-1.5">
-            <span className="font-serif font-normal text-2xl tracking-tight text-ink">WaitPlay</span>
+            <span className="font-serif font-normal text-2xl tracking-tight text-ink">Vibe Play</span>
             <span className="text-[10px] font-sans font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-forest/10 text-forest">
               Flow
             </span>

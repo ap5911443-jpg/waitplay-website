@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draws the WaitPlay app icon (rounded square, play triangle) into a .iconset folder. Standard library only.
+"""Draws the Vibe Play app icon (rounded square, play triangle) into a .iconset folder. Standard library only.
 
 usage: make_icon.py OUT.iconset
 """

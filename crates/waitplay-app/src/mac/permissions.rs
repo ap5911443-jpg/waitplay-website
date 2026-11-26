@@ -1,4 +1,4 @@
-//! The permission screen's content. WaitPlay's design needs no privacy permission: the active application comes from NSWorkspace,
+//! The permission screen's content. Vibe Play's design needs no privacy permission: the active application comes from NSWorkspace,
 //! agent events travel over loopback, and nothing reads the screen or the keyboard. This list says so explicitly (and links to the
 //! pane where the one user-controllable item, Login Items, lives) instead of asking for anything it does not use.
 
@@ -18,8 +18,8 @@ pub fn list(launch_at_login: bool) -> Value {
         {
             "id": "loginItems",
             "title": "Login Items",
-            "why": "Lets WaitPlay start by itself when you sign in to your Mac.",
-            "affects": "Launch at login. If you switch WaitPlay off under Login Items in System Settings, it will not start automatically.",
+            "why": "Lets Vibe Play start by itself when you sign in to your Mac.",
+            "affects": "Launch at login. If you switch Vibe Play off under Login Items in System Settings, it will not start automatically.",
             "state": if launch_at_login { "unknown" } else { "notRequired" },
             "canOpen": true,
             "pane": "loginItems"
@@ -27,8 +27,8 @@ pub fn list(launch_at_login: bool) -> Value {
         {
             "id": "accessibility",
             "title": "Accessibility",
-            "why": "WaitPlay does not read your keystrokes or control other apps, so it does not ask for this.",
-            "affects": "Nothing. WaitPlay finds your terminal from the active application.",
+            "why": "Vibe Play does not read your keystrokes or control other apps, so it does not ask for this.",
+            "affects": "Nothing. Vibe Play finds your terminal from the active application.",
             "state": "notRequired",
             "canOpen": false,
             "pane": "accessibility"
@@ -36,7 +36,7 @@ pub fn list(launch_at_login: bool) -> Value {
         {
             "id": "screenRecording",
             "title": "Screen Recording",
-            "why": "WaitPlay never captures your screen, so it does not ask for this.",
+            "why": "Vibe Play never captures your screen, so it does not ask for this.",
             "affects": "Nothing.",
             "state": "notRequired",
             "canOpen": false,
@@ -45,7 +45,7 @@ pub fn list(launch_at_login: bool) -> Value {
         {
             "id": "network",
             "title": "Network",
-            "why": "Coding agents report to WaitPlay over 127.0.0.1, inside your Mac. The entertainment sites use your normal internet connection.",
+            "why": "Coding agents report to Vibe Play over 127.0.0.1, inside your Mac. The entertainment sites use your normal internet connection.",
             "affects": "Nothing leaves your Mac except the sites you open.",
             "state": "notRequired",
             "canOpen": false,

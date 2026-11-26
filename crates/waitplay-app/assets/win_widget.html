@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
-<title>WaitPlay Widget</title>
+<title>Vibe Play Widget</title>
 <style>
-/* WaitPlay notch (Windows): a near-black pill that hangs at the top centre of the screen, like the Dynamic Island.
+/* Vibe Play notch (Windows): a near-black pill that hangs at the top centre of the screen, like the Dynamic Island.
    Resting it is a small pill (logo, name, activity bars). While an agent works it widens to show the status, the agent, a running
    timer and which entertainment sites are on; a click opens the panel with the existing controls. The window is transparent and the
    app clips it to the pill (the page reports the pill rectangle over IPC every frame while it moves), so everything around the pill
@@ -136,7 +136,7 @@ body.demo #wrap{margin:0 auto;width:auto}
 <body>
 <div id="wrap" class="top center">
   <div id="pill" class="rest" data-status="idle">
-    <div id="bar" role="button" tabindex="0" aria-label="Expand WaitPlay">
+    <div id="bar" role="button" tabindex="0" aria-label="Expand Vibe Play">
       <span id="icon">
         <svg viewBox="0 0 34 34" aria-hidden="true">
           <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b92ff"/><stop offset="1" stop-color="#4046e0"/></linearGradient></defs>
@@ -145,7 +145,7 @@ body.demo #wrap{margin:0 auto;width:auto}
         </svg>
         <span id="ring"><svg viewBox="0 0 8 8" aria-hidden="true"><path d="M1.5 4.2 3.3 6 6.5 2"/></svg></span>
       </span>
-      <span id="restText">WaitPlay</span>
+      <span id="restText">Vibe Play</span>
       <span id="act" aria-hidden="true"><i></i><i></i><i></i></span>
       <span id="text"><span id="title"></span><span id="sub"></span></span>
       <span id="timer" aria-label="Running time"></span>
@@ -261,7 +261,7 @@ body.demo #wrap{margin:0 auto;width:auto}
   }
   function setExpanded(on){
     expanded = on; pill.classList.toggle('open', on);
-    $('chev').setAttribute('aria-expanded', on ? 'true' : 'false'); $('bar').setAttribute('aria-label', on ? 'Collapse WaitPlay' : 'Expand WaitPlay');
+    $('chev').setAttribute('aria-expanded', on ? 'true' : 'false'); $('bar').setAttribute('aria-label', on ? 'Collapse Vibe Play' : 'Expand Vibe Play');
     layout(); scheduleCollapse();
   }
 
@@ -275,7 +275,7 @@ body.demo #wrap{margin:0 auto;width:auto}
     const label = S.label || '';
     $('title').textContent = label;
     $('sub').textContent = S.compact ? '' : (S.detail || '');
-    $('restText').textContent = S.status === 'paused' ? 'Paused' : 'WaitPlay';
+    $('restText').textContent = S.status === 'paused' ? 'Paused' : 'Vibe Play';
     text.classList.toggle('hide', S.showStatus === false);
     if (label !== lastLabel){ lastLabel = label; text.classList.remove('swap'); void text.offsetWidth; text.classList.add('swap'); }
     $('vAgent').textContent = (S.agent || '—') + (S.terminal ? ' · ' + S.terminal : '');

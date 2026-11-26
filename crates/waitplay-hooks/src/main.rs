@@ -1,4 +1,4 @@
-//! `waitplay-hook`: every agent integration of WaitPlay in one binary.
+//! `waitplay-hook`: every agent integration of Vibe Play in one binary.
 //!
 //! Hooks (short-lived, read their input, talk to the bridge once, always exit 0, never block the agent):
 //!   claude-code <start|tool|stop|notify|end>      Claude Code hook (JSON on stdin)

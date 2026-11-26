@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>WaitPlay Account</title>
+<title>Vibe Play Account</title>
 <style>
 :root {
   --bg: #f5f5f7; --card: #ffffff; --label: #1d1d1f; --label2: rgba(60,60,67,.62); --label3: rgba(60,60,67,.38);
@@ -150,13 +150,13 @@ function btn(text, cls, onclick, opts) { return h("button", Object.assign({ clas
 function render() {
   const app = $("#app"); const focusId = document.activeElement && document.activeElement.id;
   app.replaceChildren();
-  if (!view.configured) { app.append(logo(), h("h1", {}, "Sign-in is not available"), h("p", { class: "sub" }, "This build of WaitPlay has no account service configured. Everything else works as usual.")); return; }
+  if (!view.configured) { app.append(logo(), h("h1", {}, "Sign-in is not available"), h("p", { class: "sub" }, "This build of Vibe Play has no account service configured. Everything else works as usual.")); return; }
   ({ welcome, email: emailScreen, code: codeScreen, forgot: forgotScreen, reset: resetScreen, account: accountScreen }[screen] || welcome)(app);
   const first = $("input", app); if (first && !focusId) first.focus(); else if (focusId) { const f = document.getElementById(focusId); if (f) f.focus(); }
 }
 
 function welcome(app) {
-  app.append(logo(), h("h1", {}, "Sign in to WaitPlay"), h("p", { class: "sub" }, "Keep your settings and devices in sync. WaitPlay works fully without an account."),
+  app.append(logo(), h("h1", {}, "Sign in to Vibe Play"), h("p", { class: "sub" }, "Keep your settings and devices in sync. Vibe Play works fully without an account."),
     h("div", { class: "stack" },
       btn("Continue with Google", "", () => run("google"), { spin: "google" }),
       h("button", { class: "btn", type: "button", disabled: true, title: "Coming soon", "aria-label": "Continue with Apple (coming soon)" }, svg(APPLE), "Continue with Apple"),
@@ -230,7 +230,7 @@ function accountScreen(app) {
   const nameInput = h("input", { class: "t", value: name, maxlength: "80", "aria-label": "Display name", style: "height:30px" });
   const active = (view.devices || []).filter((d) => !d.revoked);
   appendAll(app,
-    view.offline ? h("div", { class: "banner", role: "status" }, "You are offline. WaitPlay keeps working; account details refresh when you are back online.") : null,
+    view.offline ? h("div", { class: "banner", role: "status" }, "You are offline. Vibe Play keeps working; account details refresh when you are back online.") : null,
     h("div", { class: "avatar", "aria-hidden": "true" }, (name[0] || "?").toUpperCase()), h("h1", {}, name), h("p", { class: "sub", style: "margin-bottom:16px" }, u.email || ""),
     h("div", { class: "card" },
       h("div", { class: "it" }, "Plan", h("span", { class: "badge" + (view.plan === "pro" ? " good" : "") }, view.plan === "pro" ? "Pro" : "Free")),
@@ -256,7 +256,7 @@ function confirmDelete(email) {
   const input = h("input", { class: "t", placeholder: email, "aria-label": "Type your email to confirm", autocomplete: "off", spellcheck: "false" });
   const go = h("button", { class: "btn danger", type: "button", disabled: true, onclick: () => { closeSheet(); run("deleteAccount"); } }, "Delete my account");
   input.addEventListener("input", () => { go.disabled = input.value.trim().toLowerCase() !== email.toLowerCase(); });
-  openSheet(h("h3", {}, "Delete your account?"), h("p", { class: "muted", style: "margin:0 0 12px" }, "This permanently deletes your WaitPlay account, profile, devices and synced preferences. It cannot be undone. Your local WaitPlay settings on this computer are not touched."),
+  openSheet(h("h3", {}, "Delete your account?"), h("p", { class: "muted", style: "margin:0 0 12px" }, "This permanently deletes your Vibe Play account, profile, devices and synced preferences. It cannot be undone. Your local Vibe Play settings on this computer are not touched."),
     h("label", { class: "f" }, "Type your email to confirm"), input, h("div", { class: "stack", style: "margin-top:12px" }, go, h("button", { class: "btn", type: "button", onclick: closeSheet }, "Cancel")));
   input.focus();
 }

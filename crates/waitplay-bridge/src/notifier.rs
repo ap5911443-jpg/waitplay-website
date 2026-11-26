@@ -51,13 +51,13 @@ pub fn is_phone_notification_configured() -> bool {
     get_config().is_some()
 }
 
-/// `WaitPlay: <agent> finished work for session <id>. Duration: <n>s.`
+/// `Vibe Play: <agent> finished work for session <id>. Duration: <n>s.`
 pub fn completion_message(task: &CompletedTaskNotification) -> String {
     let duration = match task.duration_ms {
         None => String::new(),
         Some(ms) => format!(" Duration: {}s.", js_round(ms as f64 / 1000.0)),
     };
-    format!("WaitPlay: {} finished work for session {}.{}", task.agent, task.session_id, duration)
+    format!("Vibe Play: {} finished work for session {}.{}", task.agent, task.session_id, duration)
 }
 
 /// `Math.round`: halves round toward +infinity.
@@ -226,9 +226,9 @@ mod tests {
     #[test]
     fn message_text_matches_typescript() {
         let t = |d| CompletedTaskNotification { agent: "codex".into(), session_id: "s-1".into(), duration_ms: d };
-        assert_eq!(completion_message(&t(Some(12_499))), "WaitPlay: codex finished work for session s-1. Duration: 12s.");
-        assert_eq!(completion_message(&t(Some(12_500))), "WaitPlay: codex finished work for session s-1. Duration: 13s.");
-        assert_eq!(completion_message(&t(None)), "WaitPlay: codex finished work for session s-1.");
+        assert_eq!(completion_message(&t(Some(12_499))), "Vibe Play: codex finished work for session s-1. Duration: 12s.");
+        assert_eq!(completion_message(&t(Some(12_500))), "Vibe Play: codex finished work for session s-1. Duration: 13s.");
+        assert_eq!(completion_message(&t(None)), "Vibe Play: codex finished work for session s-1.");
     }
 
     #[test]

@@ -1,9 +1,9 @@
 //! Hand-off files between hooks, the widget and companion windows. Formats are unchanged from the C# app:
 //!
-//! * `.waitplay-launch-<id>.txt`    `sessionId|terminal|unixMs|hwnd`   written by a later WaitPlay launch for the running companion
+//! * `.waitplay-launch-<id>.txt`    `sessionId|terminal|unixMs|hwnd`   written by a later Vibe Play launch for the running companion
 //! * `.waitplay-summon-<site>.txt`  same line, for non-default site companions
 //! * `.waitplay-close-<id>.json`    `{"sessionId":..,"ts":..}`         written by agent hooks at turn end
-//! * `.waitplay-quit.txt`           unix ms                            "Quit companion" / WaitPlay off
+//! * `.waitplay-quit.txt`           unix ms                            "Quit companion" / Vibe Play off
 //! * `.waitplay-dismissed.json`     `{id:{dismissed,dismissedAt}}`     the user closed the window for this prompt
 
 use crate::paths;

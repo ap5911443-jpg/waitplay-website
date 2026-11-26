@@ -315,7 +315,7 @@ pub fn sessions_dir() -> PathBuf {
 pub fn run_watch() -> ! {
     let root = sessions_dir();
     println!("=======================================================");
-    println!("  WaitPlay Dedicated Watcher for Cline");
+    println!("  Vibe Play Dedicated Watcher for Cline");
     println!("  Cline Sessions Dir: {}", root.display());
     println!("  Bridge Target: http://127.0.0.1:{}", paths::bridge_port());
     println!("=======================================================");

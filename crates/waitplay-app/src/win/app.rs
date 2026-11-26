@@ -1,4 +1,4 @@
-//! The WaitPlay tray application (Windows): one process that owns the tray icon and its menu, the floating widget, the settings
+//! The Vibe Play tray application (Windows): one process that owns the tray icon and its menu, the floating widget, the settings
 //! window, the global shortcuts and the helpers (bridge, agent watchers). Entertainment windows stay in their own companion
 //! processes (`companion`), started by the agent hooks or by "Open Now". This is the counterpart of `mac/app.rs`.
 //!
@@ -394,7 +394,7 @@ impl App {
         self.refresh_widget_window(target);
         self.sync_login_item();
         self.refresh_runtime(true);
-        wp_info!("WaitPlay {} ({}) started; {} display(s)", VERSION, BUILD, self.screens.len());
+        wp_info!("Vibe Play {} ({}) started; {} display(s)", VERSION, BUILD, self.screens.len());
     }
 
     fn create_tray(&mut self) {
@@ -406,7 +406,7 @@ impl App {
                 return;
             }
         };
-        match TrayIconBuilder::new().with_icon(icon).with_tooltip("WaitPlay").build() {
+        match TrayIconBuilder::new().with_icon(icon).with_tooltip("Vibe Play").build() {
             Ok(t) => {
                 wp_info!("tray icon created");
                 self.tray = Some(t);
@@ -615,7 +615,7 @@ impl App {
         match build_menu(&entries) {
             Ok(menu) => {
                 tray.set_menu(Some(Box::new(menu.clone())));
-                let _ = tray.set_tooltip(Some(format!("WaitPlay \u{2014} {}", title)));
+                let _ = tray.set_tooltip(Some(format!("Vibe Play \u{2014} {}", title)));
                 self.menu = Some(menu);
                 self.last_menu = entries;
             }
@@ -680,7 +680,7 @@ impl App {
                         match integrations::claude_state(&path, &hook_exe) {
                             integrations::ClaudeState::Configured => json!({"state": "configured", "detail": format!("Hooks installed in {}", path.display()), "canInstall": true, "howTo": ""}),
                             integrations::ClaudeState::NotConfigured => json!({"state": "notConfigured", "detail": if detected { "Hooks are not installed yet." } else { "Claude Code was not found on this PC." }, "canInstall": detected, "howTo": ""}),
-                            integrations::ClaudeState::Outdated => json!({"state": "notConfigured", "detail": "The hooks point to an old WaitPlay location. Install to update them.", "canInstall": true, "howTo": ""}),
+                            integrations::ClaudeState::Outdated => json!({"state": "notConfigured", "detail": "The hooks point to an old Vibe Play location. Install to update them.", "canInstall": true, "howTo": ""}),
                             integrations::ClaudeState::Error(e) => json!({"state": "error", "detail": e, "canInstall": false, "howTo": ""}),
                         }
                     }
@@ -691,7 +691,7 @@ impl App {
                         } else if let Some(e) = self.supervisor.watcher_error(a.id) {
                             json!({"state": "error", "detail": e, "canInstall": true, "howTo": ""})
                         } else if on {
-                            json!({"state": "configured", "detail": "WaitPlay watches this agent while automation is on.", "canInstall": true, "howTo": ""})
+                            json!({"state": "configured", "detail": "Vibe Play watches this agent while automation is on.", "canInstall": true, "howTo": ""})
                         } else {
                             json!({"state": "notConfigured", "detail": "The watcher is off.", "canInstall": true, "howTo": ""})
                         }
@@ -707,14 +707,14 @@ impl App {
     fn errors_json(&self, agents: &Value) -> Value {
         let mut errors: Vec<Value> = Vec::new();
         if self.rt.enabled && !self.rt.bridge_ok && self.rt.bridge_misses >= BRIDGE_GRACE {
-            let hint = self.supervisor.bridge.last_error.clone().unwrap_or_else(|| "WaitPlay starts it automatically; if this stays, restart WaitPlay.".into());
+            let hint = self.supervisor.bridge.last_error.clone().unwrap_or_else(|| "Vibe Play starts it automatically; if this stays, restart Vibe Play.".into());
             errors.push(json!({"id": "bridge", "severity": "error", "message": "The local bridge is not running, so agent activity cannot be seen.", "hint": hint}));
         }
         for a in agents.as_array().into_iter().flatten() {
             let (id, detected) = (a["id"].as_str().unwrap_or(""), a["detected"].as_bool().unwrap_or(false));
             let integ = &a["integration"];
             if detected && a["id"] == "claude-code" && integ["state"] == "notConfigured" {
-                errors.push(json!({"id": "claude-hooks", "severity": "warning", "message": "Claude Code is installed but WaitPlay's hooks are not set up.", "hint": "Open AI Agents and choose Install Hooks."}));
+                errors.push(json!({"id": "claude-hooks", "severity": "warning", "message": "Claude Code is installed but Vibe Play's hooks are not set up.", "hint": "Open AI Agents and choose Install Hooks."}));
             }
             if integ["state"] == "error" {
                 errors.push(json!({"id": format!("integration-{}", id), "severity": "error", "message": format!("{}: {}", a["name"].as_str().unwrap_or(id), integ["detail"].as_str().unwrap_or("")), "hint": "See the log file for details."}));
@@ -801,7 +801,7 @@ impl App {
 
     fn create_widget(&mut self, target: &EventLoopWindowTarget<Ev>) -> Result<WidgetWin, String> {
         let window = WindowBuilder::new()
-            .with_title("WaitPlay Widget")
+            .with_title("Vibe Play Widget")
             .with_decorations(false)
             .with_transparent(true)
             .with_always_on_top(true)
@@ -989,7 +989,7 @@ impl App {
     fn create_settings(&mut self, target: &EventLoopWindowTarget<Ev>) -> Result<SettingsWin, String> {
         let icon = WindowIcon::from_rgba(icons::app_icon_rgba(64), 64, 64).ok();
         let window = WindowBuilder::new()
-            .with_title("WaitPlay")
+            .with_title("Vibe Play")
             .with_inner_size(LogicalSize::new(760.0, 540.0))
             .with_min_inner_size(LogicalSize::new(680.0, 460.0))
             .with_resizable(true)
@@ -1436,7 +1436,7 @@ pub fn run() -> Result<(), String> {
     };
 
     let mut settings = Settings::load();
-    // "Start automation automatically": WaitPlay opens switched on (or off) as the user chose
+    // "Start automation automatically": Vibe Play opens switched on (or off) as the user chose
     state::set_enabled(settings.auto_start_automation);
     if settings.watchers.is_empty() && !Settings::path().exists() {
         settings.watchers = integrations::default_watchers();

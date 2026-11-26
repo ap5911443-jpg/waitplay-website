@@ -17,7 +17,7 @@ export const SpeedComparison: React.FC = () => {
         </EditorialHeading>
 
         <p className="font-sans text-[17px] sm:text-[19px] text-[#FFFFEB]/80 leading-[1.6] font-normal">
-          Waiting for an AI agent to inspect files, execute bash tools, and run test suites usually triggers subconscious tab-switching. You lose 15 minutes of productive momentum. WaitPlay keeps your brain in the zone.
+          Waiting for an AI agent to inspect files, execute bash tools, and run test suites usually triggers subconscious tab-switching. You lose 15 minutes of productive momentum. Vibe Play keeps your brain in the zone.
         </p>
       </div>
 

@@ -1,6 +1,6 @@
-# WaitPlay Architecture
+# Vibe Play Architecture
 
-WaitPlay is a browser-based interactive gaming companion for users of AI coding agents (initial focus: Claude Code).
+Vibe Play is a browser-based interactive gaming companion for users of AI coding agents (initial focus: Claude Code).
 
 ## System Architecture
 

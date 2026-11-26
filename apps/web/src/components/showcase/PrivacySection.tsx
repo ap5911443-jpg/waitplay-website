@@ -16,7 +16,7 @@ export const PrivacySection: React.FC = () => {
               <span className="text-lavender italic">Zero cloud telemetry or code leakage.</span>
             </h2>
             <p className="font-sans text-base sm:text-lg text-canvas/80 leading-relaxed">
-              We believe a coding companion must have zero attack surface. WaitPlay does not maintain cloud servers, accounts, or analytics. Everything runs isolated on your local machine.
+              We believe a coding companion must have zero attack surface. Vibe Play does not maintain cloud servers, accounts, or analytics. Everything runs isolated on your local machine.
             </p>
           </div>
 
@@ -47,7 +47,7 @@ export const PrivacySection: React.FC = () => {
               </div>
               <h3 className="font-serif text-xl font-normal text-canvas">Zero Code Access</h3>
               <p className="text-xs font-sans text-canvas/70 leading-relaxed">
-                WaitPlay listens only for lifecycle signals (start, tool run, finish). Your source code, proprietary algorithms, and tokens are never read or stored.
+                Vibe Play listens only for lifecycle signals (start, tool run, finish). Your source code, proprietary algorithms, and tokens are never read or stored.
               </p>
             </div>
           </div>

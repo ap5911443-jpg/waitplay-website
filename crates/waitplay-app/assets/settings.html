@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>WaitPlay Settings</title>
+<title>Vibe Play Settings</title>
 <style>
 :root {
   --bg: #f5f5f7; --sidebar: #ebebed; --card: #ffffff;
@@ -314,10 +314,10 @@ function paneGeneral() {
       h("div", { class: "row" }, dot, stat)),
     group(
       switchRow("Launch at login", null, "launchAtLogin"),
-      switchRow("Start automation automatically", "Turn automation on whenever WaitPlay starts.", "autoStartAutomation"),
+      switchRow("Start automation automatically", "Turn automation on whenever Vibe Play starts.", "autoStartAutomation"),
       switchRow("Show floating widget", null, "showWidget"),
-      switchRow("Show Dock icon", "WaitPlay normally lives in the menu bar.", "showDockIcon")),
-    group(h("div", { class: "row" }, h("div", { class: "grow" }, h("div", { class: "rtitle" }, "Account"), h("div", { class: "rdesc" }, "Sign in to sync your settings and devices. WaitPlay works fully without an account.")),
+      switchRow("Show Dock icon", "Vibe Play normally lives in the menu bar.", "showDockIcon")),
+    group(h("div", { class: "row" }, h("div", { class: "grow" }, h("div", { class: "rtitle" }, "Account"), h("div", { class: "rdesc" }, "Sign in to sync your settings and devices. Vibe Play works fully without an account.")),
       h("button", { class: "btn", type: "button", onclick: () => send({ t: "openAccount" }) }, "Account…"))),
     group(h("div", { class: "row" }, h("div", { class: "grow rtitle" }, "Appearance"), appearance.el)));
 }
@@ -503,7 +503,7 @@ function permCard() {
 function panePermissions() {
   const list = h("div");
   reg(() => reconcile(list, runtime().permissions || [], p => p.id, permCard, (el, p) => el.upd(p)));
-  return h("div", { class: "stack" }, h("div", { class: "note", style: "margin:0 4px" }, "WaitPlay asks only for what it needs."), list);
+  return h("div", { class: "stack" }, h("div", { class: "note", style: "margin:0 4px" }, "Vibe Play asks only for what it needs."), list);
 }
 
 function paneAbout() {
@@ -520,7 +520,7 @@ function paneAbout() {
   web.addEventListener("click", () => send({ t: "openUrl", url: runtime().website }));
   sup.addEventListener("click", () => send({ t: "openUrl", url: runtime().supportUrl }));
   const check = h("button", { class: "btn", type: "button", onclick: () => send({ t: "checkUpdates" }) }, "Check for updates");
-  const UPD = { unknown: "", checking: "Checking for updates\u2026", upToDate: "WaitPlay is up to date.", available: "An update is available.", error: "Couldn\u2019t check for updates." };
+  const UPD = { unknown: "", checking: "Checking for updates\u2026", upToDate: "Vibe Play is up to date.", available: "An update is available.", error: "Couldn\u2019t check for updates." };
   reg(() => {
     const rt = runtime();
     setText(ver, "Version " + rt.version + (rt.build ? " (" + rt.build + ")" : ""));
@@ -530,8 +530,8 @@ function paneAbout() {
     check.disabled = u.state === "checking";
   });
   const logs = h("button", { class: "btn", type: "button", onclick: () => send({ t: "revealLogs" }) }, "Show log file in Finder");
-  const quit = h("button", { class: "btn danger quit", type: "button", onclick: () => confirmQuit(quit) }, "Quit WaitPlay");
-  return h("div", { class: "about" }, icon, h("h2", {}, "WaitPlay"), ver,
+  const quit = h("button", { class: "btn danger quit", type: "button", onclick: () => confirmQuit(quit) }, "Quit Vibe Play");
+  return h("div", { class: "about" }, icon, h("h2", {}, "Vibe Play"), ver,
     h("div", { class: "tag" }, "Your AI codes. You stay entertained."),
     h("div", { class: "links" }, web, sup),
     h("div", { class: "upd" }, check, upd), h("div", { style: "margin-top:10px" }, logs), quit);
@@ -550,7 +550,7 @@ function confirmQuit(opener) {
   cancel.addEventListener("click", close);
   ok.addEventListener("click", () => { send({ t: "quit" }); close(); });
   ov.replaceChildren(h("div", { class: "sheet", role: "alertdialog", "aria-modal": "true", "aria-labelledby": "qt", "aria-describedby": "qd" },
-    h("h3", { id: "qt" }, "Quit WaitPlay?"), h("p", { id: "qd" }, "Automation will stop until you open WaitPlay again."),
+    h("h3", { id: "qt" }, "Quit Vibe Play?"), h("p", { id: "qd" }, "Automation will stop until you open Vibe Play again."),
     h("div", { class: "acts" }, cancel, ok)));
   ov.classList.add("on");
   document.addEventListener("keydown", onKey, true);
@@ -635,7 +635,7 @@ if (!window.ipc) {
         { id: "gemini", name: "Gemini CLI", detected: true, activity: "waiting", integration: { state: "error", detail: "Couldn't write ~/.gemini/settings.json", canInstall: false, howTo: "" } }
       ],
       permissions: [
-        { id: "ax", title: "Accessibility", why: "Lets WaitPlay detect when you switch back to your editor.", affects: "automatic return to your editor stops working.", state: "notGranted", canOpen: true, pane: "Privacy_Accessibility" },
+        { id: "ax", title: "Accessibility", why: "Lets Vibe Play detect when you switch back to your editor.", affects: "automatic return to your editor stops working.", state: "notGranted", canOpen: true, pane: "Privacy_Accessibility" },
         { id: "notif", title: "Notifications", why: "Shows a banner when an agent needs your input.", affects: "alerts when agents finish.", state: "granted", canOpen: true, pane: "Notifications" },
         { id: "auto", title: "Automation", why: "Not needed for the current setup.", affects: "", state: "notRequired", canOpen: false, pane: "" },
         { id: "input", title: "Input Monitoring", why: "Reserved for global shortcuts on some keyboards.", affects: "global shortcuts.", state: "unknown", canOpen: true, pane: "Privacy_ListenEvent" }

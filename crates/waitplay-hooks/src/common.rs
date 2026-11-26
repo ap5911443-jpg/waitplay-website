@@ -134,7 +134,7 @@ impl PopRequest {
     }
 }
 
-/// Launches the WaitPlay app detached. Absent binary or spawn failure: nothing happens.
+/// Launches the Vibe Play app detached. Absent binary or spawn failure: nothing happens.
 pub fn spawn_app(req: &PopRequest) {
     if let Some(exe) = paths::app_exe() {
         let _ = process::spawn_detached(&exe, &req.args());

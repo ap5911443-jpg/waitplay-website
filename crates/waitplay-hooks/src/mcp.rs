@@ -1,4 +1,4 @@
-//! `waitplay-hook mcp`: the WaitPlay Model Context Protocol server, JSON-RPC 2.0 over stdio, newline-delimited.
+//! `waitplay-hook mcp`: the Vibe Play Model Context Protocol server, JSON-RPC 2.0 over stdio, newline-delimited.
 //! Port of integrations/mcp/waitplay-mcp.cjs with the same methods, tool list, schemas, texts and errors.
 
 use crate::common::{self, js_string, truthy, PopRequest};
@@ -9,9 +9,9 @@ use waitplay_core::state;
 
 pub const TOOLS_LIST_RESULT: &str = concat!(
     r#"{"tools":["#,
-    r#"{"name":"waitplay_start_game","description":"Pops up the native WaitPlay companion game window on the user screen while the coding agent is thinking, researching, or running long tasks.","inputSchema":{"type":"object","properties":{"agent":{"type":"string","description":"Name of the coding agent (e.g. cursor, cline, opencode, antigravity, claude-code)"},"model":{"type":"string","description":"Name of the AI model currently generating the response"},"task":{"type":"string","description":"Brief summary of the active task"}}}},"#,
-    r#"{"name":"waitplay_update_status","description":"Updates live telemetry and tool execution state in the WaitPlay companion game window.","inputSchema":{"type":"object","properties":{"agent":{"type":"string"},"tool":{"type":"string","description":"Name of the tool currently executing (e.g. read, edit, bash)"},"step":{"type":"string","description":"Description of the current operation"}}}},"#,
-    r#"{"name":"waitplay_finish_game","description":"Notifies WaitPlay that the coding agent has completed its task, showing the completion summary and closing the game.","inputSchema":{"type":"object","properties":{"agent":{"type":"string"},"summary":{"type":"string","description":"Brief summary of task results"}}}}"#,
+    r#"{"name":"waitplay_start_game","description":"Pops up the native Vibe Play companion game window on the user screen while the coding agent is thinking, researching, or running long tasks.","inputSchema":{"type":"object","properties":{"agent":{"type":"string","description":"Name of the coding agent (e.g. cursor, cline, opencode, antigravity, claude-code)"},"model":{"type":"string","description":"Name of the AI model currently generating the response"},"task":{"type":"string","description":"Brief summary of the active task"}}}},"#,
+    r#"{"name":"waitplay_update_status","description":"Updates live telemetry and tool execution state in the Vibe Play companion game window.","inputSchema":{"type":"object","properties":{"agent":{"type":"string"},"tool":{"type":"string","description":"Name of the tool currently executing (e.g. read, edit, bash)"},"step":{"type":"string","description":"Description of the current operation"}}}},"#,
+    r#"{"name":"waitplay_finish_game","description":"Notifies Vibe Play that the coding agent has completed its task, showing the completion summary and closing the game.","inputSchema":{"type":"object","properties":{"agent":{"type":"string"},"summary":{"type":"string","description":"Brief summary of task results"}}}}"#,
     r#"]}"#
 );
 
@@ -106,7 +106,7 @@ pub fn handle_line(line: &str, host: &mut dyn Host) -> Option<String> {
                         vec![("model", arg(&args, "model")), ("task", arg(&args, "task"))],
                     ));
                     let text = format!(
-                        "WaitPlay game window popped up on user's screen for {} ({}).",
+                        "Vibe Play game window popped up on user's screen for {} ({}).",
                         js_string(&agent),
                         text_or(arg(&args, "model"), "active model")
                     );
@@ -120,12 +120,12 @@ pub fn handle_line(line: &str, host: &mut dyn Host) -> Option<String> {
                         None,
                         vec![("tool", arg(&args, "tool")), ("step", arg(&args, "step"))],
                     ));
-                    let text = format!("WaitPlay status updated with tool: {}.", text_or(arg(&args, "tool"), "running"));
+                    let text = format!("Vibe Play status updated with tool: {}.", text_or(arg(&args, "tool"), "running"));
                     return Some(response(id, "result", &text_result(&text)));
                 }
                 Some("waitplay_finish_game") => {
                     host.post_event(event(&agent, &session_id, "task_completed", None, vec![("summary", arg(&args, "summary"))]));
-                    let text = format!("WaitPlay notified that {} finished. Game completion banner displayed.", js_string(&agent));
+                    let text = format!("Vibe Play notified that {} finished. Game completion banner displayed.", js_string(&agent));
                     return Some(response(id, "result", &text_result(&text)));
                 }
                 _ => {
@@ -262,7 +262,7 @@ mod tests {
         assert_eq!(p["data"], json!({"model": "gpt-5", "task": "refactor"}));
         assert_eq!(
             r.unwrap(),
-            json!({"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"WaitPlay game window popped up on user's screen for cursor (gpt-5)."}]}})
+            json!({"jsonrpc":"2.0","id":3,"result":{"content":[{"type":"text","text":"Vibe Play game window popped up on user's screen for cursor (gpt-5)."}]}})
         );
     }
 
@@ -273,7 +273,7 @@ mod tests {
         assert_eq!(h.posts[0]["agent"], "coding-agent");
         assert!(h.posts[0].get("model").is_none());
         assert_eq!(h.posts[0]["data"], json!({}));
-        assert_eq!(r.unwrap()["result"]["content"][0]["text"], "WaitPlay game window popped up on user's screen for coding-agent (active model).");
+        assert_eq!(r.unwrap()["result"]["content"][0]["text"], "Vibe Play game window popped up on user's screen for coding-agent (active model).");
     }
 
     #[test]
@@ -284,15 +284,15 @@ mod tests {
         assert_eq!(h.posts[0]["sessionId"], "cline-session");
         assert_eq!(h.posts[0]["data"], json!({"tool": "bash", "step": "npm test"}));
         assert!(h.posts[0].get("model").is_none());
-        assert_eq!(r.unwrap()["result"]["content"][0]["text"], "WaitPlay status updated with tool: bash.");
+        assert_eq!(r.unwrap()["result"]["content"][0]["text"], "Vibe Play status updated with tool: bash.");
 
         let (r, _) = call(r#"{"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"waitplay_update_status","arguments":{}}}"#);
-        assert_eq!(r.unwrap()["result"]["content"][0]["text"], "WaitPlay status updated with tool: running.");
+        assert_eq!(r.unwrap()["result"]["content"][0]["text"], "Vibe Play status updated with tool: running.");
 
         let (r, h) = call(r#"{"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"waitplay_finish_game","arguments":{"agent":"omp","summary":"done"}}}"#);
         assert_eq!(h.posts[0]["event"], "task_completed");
         assert_eq!(h.posts[0]["data"], json!({"summary": "done"}));
-        assert_eq!(r.unwrap()["result"]["content"][0]["text"], "WaitPlay notified that omp finished. Game completion banner displayed.");
+        assert_eq!(r.unwrap()["result"]["content"][0]["text"], "Vibe Play notified that omp finished. Game completion banner displayed.");
     }
 
     #[test]

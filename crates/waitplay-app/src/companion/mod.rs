@@ -647,7 +647,7 @@ pub fn run(opts: Options, _guard: Guard) -> Result<(), String> {
         use tao::platform::macos::{ActivationPolicy, EventLoopExtMacOS};
         // a utility without a Dock icon; the standard Edit menu makes paste work in the sites' sign-in forms
         event_loop.set_activation_policy(ActivationPolicy::Accessory);
-        platform::install_main_menu("WaitPlay");
+        platform::install_main_menu("Vibe Play");
     }
     let proxy = event_loop.create_proxy();
     let user_settings = waitplay_core::settings::Settings::load();
@@ -655,7 +655,7 @@ pub fn run(opts: Options, _guard: Guard) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     crate::logging::init("companion");
     let window = {
-        let b = WindowBuilder::new().with_title("WaitPlay").with_resizable(true).with_always_on_top(true).with_visible(false);
+        let b = WindowBuilder::new().with_title("Vibe Play").with_resizable(true).with_always_on_top(true).with_visible(false);
         // Windows draws its own caption in the header page; macOS keeps the native title bar and traffic lights
         #[cfg(not(target_os = "macos"))]
         // black GDI pixels are what a transparent window shows through as glass, so the bare window (the frame around the site) is black

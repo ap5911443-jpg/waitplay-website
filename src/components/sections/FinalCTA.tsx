@@ -26,7 +26,7 @@ export const FinalCTA: React.FC = () => {
         </EditorialHeading>
 
         <p className="font-sans text-[17px] sm:text-[20px] text-[#666666] max-w-[620px] mx-auto leading-[1.6] mb-8 font-normal">
-          Join developers around the world reclaiming deep focus. Download WaitPlay free for Windows, macOS, and Linux — 100% local, no account required.
+          Join developers around the world reclaiming deep focus. Download Vibe Play free for Windows, macOS, and Linux — 100% local, no account required.
         </p>
 
         {/* CTA buttons */}
@@ -37,7 +37,7 @@ export const FinalCTA: React.FC = () => {
             icon={<Download className="w-4 h-4" />}
             className="w-full sm:w-auto"
           >
-            Download WaitPlay Free
+            Download Vibe Play Free
           </PrimaryButton>
 
           {/* Quick CLI command */}

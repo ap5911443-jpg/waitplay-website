@@ -98,7 +98,7 @@ fn task_completed_hook() -> SessionCallback {
             return;
         }
         if !sms_limit.allow() {
-            eprintln!("[WaitPlay Bridge] SMS limit reached ({} per hour): completion notice not sent", crate::limits::SMS_PER_HOUR);
+            eprintln!("[Vibe Play Bridge] SMS limit reached ({} per hour): completion notice not sent", crate::limits::SMS_PER_HOUR);
             return;
         }
         // Fire and forget: SMS problems are logged and never block event handling.
@@ -115,7 +115,7 @@ pub async fn run() -> i32 {
     let port = match port_from_env() {
         Ok(p) => p,
         Err(e) => {
-            eprintln!("[WaitPlay Bridge] {}", e);
+            eprintln!("[Vibe Play Bridge] {}", e);
             return 1;
         }
     };
@@ -126,37 +126,37 @@ pub async fn run() -> i32 {
     let token = match security::initialize_bridge_token(&token_file) {
         Ok(t) => t,
         Err(e) => {
-            eprintln!("[WaitPlay Bridge] {}", e);
+            eprintln!("[Vibe Play Bridge] {}", e);
             return 1;
         }
     };
-    println!("[WaitPlay Bridge] Security token initialized");
+    println!("[Vibe Play Bridge] Security token initialized");
     println!(
-        "[WaitPlay Bridge] Phone completion notifications: {}",
+        "[Vibe Play Bridge] Phone completion notifications: {}",
         if notifier::is_phone_notification_configured() { "enabled" } else { "disabled" }
     );
 
     let listener = match TcpListener::bind(("127.0.0.1", port)).await {
         Ok(l) => l,
         Err(e) => {
-            eprintln!("[WaitPlay Bridge] Could not listen on 127.0.0.1:{}: {}", port, e);
+            eprintln!("[Vibe Play Bridge] Could not listen on 127.0.0.1:{}: {}", port, e);
             return 1;
         }
     };
     let bridge = start(listener, token, Some(task_completed_hook()));
     println!("=======================================================");
-    println!("  WaitPlay Local Companion Bridge running");
+    println!("  Vibe Play Local Companion Bridge running");
     println!("  HTTP:      http://127.0.0.1:{}", port);
     println!("  WebSocket: ws://127.0.0.1:{}/ws", port);
     println!("  Token:     {} (readable by this user only)", token_file.display());
     println!("=======================================================");
 
     let signal = wait_for_shutdown_signal().await;
-    println!("[WaitPlay Bridge] Received {}. Shutting down cleanly...", signal);
+    println!("[Vibe Play Bridge] Received {}. Shutting down cleanly...", signal);
     bridge.shutdown();
     // Give the close frames a moment to leave the socket buffers.
     tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-    println!("[WaitPlay Bridge] Server closed.");
+    println!("[Vibe Play Bridge] Server closed.");
     0
 }
 

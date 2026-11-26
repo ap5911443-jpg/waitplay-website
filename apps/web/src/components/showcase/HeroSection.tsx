@@ -35,7 +35,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onPlayGame, onOpenDash
 
         {/* Sans-serif Explanation */}
         <p className="font-sans font-normal text-lg sm:text-xl text-ink-soft max-w-2xl mx-auto leading-relaxed">
-          AI coding agents take 30 to 90 seconds to reason, query tools, and generate code. WaitPlay turns that idle downtime into instant cognitive flow — then automatically returns your cursor the second work finishes.
+          AI coding agents take 30 to 90 seconds to reason, query tools, and generate code. Vibe Play turns that idle downtime into instant cognitive flow — then automatically returns your cursor the second work finishes.
         </p>
 
         {/* CTA Group */}
@@ -130,7 +130,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onPlayGame, onOpenDash
                 )}
                 {activeStep >= 1 && (
                   <div className="text-zinc-400 text-[11px] space-y-1">
-                    <p className="text-cyan-400">⚡ WaitPlay hooked: task_started</p>
+                    <p className="text-cyan-400">⚡ Vibe Play hooked: task_started</p>
                     <p>• Generating cryptographic state & PKCE code_verifier...</p>
                     <p>• Writing loopback redirect listener on port 3150...</p>
                     {activeStep === 2 && (
@@ -146,7 +146,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onPlayGame, onOpenDash
               </div>
             </div>
 
-            {/* Right: WaitPlay Flow Widget & Interactive Mini-Game */}
+            {/* Right: Vibe Play Flow Widget & Interactive Mini-Game */}
             <div className="bg-canvas-muted/40 rounded-2xl p-5 border border-ink/10 flex flex-col items-center justify-center min-h-[220px] space-y-4">
               {activeStep === 0 && (
                 <div className="text-center space-y-3 py-6">

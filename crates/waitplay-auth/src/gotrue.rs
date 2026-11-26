@@ -74,7 +74,7 @@ pub struct Client {
 
 impl Client {
     pub fn new(cfg: AuthConfig) -> Client {
-        let agent = ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(8)).timeout(Duration::from_secs(20)).user_agent("WaitPlay").build();
+        let agent = ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(8)).timeout(Duration::from_secs(20)).user_agent("Vibe Play").build();
         Client { cfg, agent }
     }
 

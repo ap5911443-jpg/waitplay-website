@@ -176,7 +176,7 @@ async fn non_loopback_remote_is_forbidden() {
     client.read_to_end(&mut raw).await.unwrap();
     let res = parse_response(&raw);
     assert_eq!(res.status, 403);
-    assert_eq!(res.json(), json!({"error": "Forbidden", "message": "WaitPlay bridge only accepts connections from localhost/loopback."}));
+    assert_eq!(res.json(), json!({"error": "Forbidden", "message": "Vibe Play bridge only accepts connections from localhost/loopback."}));
 }
 
 #[tokio::test]
@@ -195,7 +195,7 @@ async fn cors_policy() {
 
     let bad = request(addr, "GET", "/health", &[("Origin", "https://evil.example.com")], None).await;
     assert_eq!(bad.status, 500);
-    assert!(bad.text().contains("Not allowed by WaitPlay Bridge CORS policy"));
+    assert!(bad.text().contains("Not allowed by Vibe Play Bridge CORS policy"));
 
     let preflight = request(
         addr,

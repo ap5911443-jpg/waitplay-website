@@ -3,7 +3,7 @@ name = "waitplay-hooks"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "waitplay-hook: agent hooks, session watchers, MCP server and simulators for WaitPlay"
+description = "waitplay-hook: agent hooks, session watchers, MCP server and simulators for Vibe Play"
 
 [[bin]]
 name = "waitplay-hook"

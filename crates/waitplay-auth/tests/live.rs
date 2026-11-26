@@ -1,4 +1,4 @@
-//! Read-only checks against the real WaitPlay Supabase project (HTTPS through rustls). They send no email and create no account.
+//! Read-only checks against the real Vibe Play Supabase project (HTTPS through rustls). They send no email and create no account.
 //! Run with:  cargo test -p waitplay-auth --test live -- --ignored --nocapture
 
 use waitplay_auth::gotrue::Client;

@@ -1,4 +1,4 @@
-//! Shared building blocks for every WaitPlay binary: the event protocol, the small files processes hand to each other,
+//! Shared building blocks for every Vibe Play binary: the event protocol, the small files processes hand to each other,
 //! and a loopback client for the bridge.
 
 pub mod client;

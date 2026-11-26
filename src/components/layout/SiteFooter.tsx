@@ -105,7 +105,7 @@ export const SiteFooter: React.FC = () => {
 
         {/* Bottom row */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[13px] text-[#888888]">
-          <p>© {new Date().getFullYear()} WaitPlay. Open source under the MIT License.</p>
+          <p>© {new Date().getFullYear()} Vibe Play. Open source under the MIT License.</p>
           <div className="flex items-center gap-6">
             <a href="#security" className="hover:text-[#1A1A1A] transition-colors">
               Security Guarantee

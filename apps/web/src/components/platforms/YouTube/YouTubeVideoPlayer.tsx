@@ -132,7 +132,7 @@ export const YouTubeVideoPlayer: React.FC<YouTubeVideoPlayerProps> = ({
                 {video.title}
               </h1>
               <p className="text-xs text-white/80 mt-2">
-                Click video to {isPlaying ? 'pause' : 'resume'} • WaitPlay Companion Mode
+                Click video to {isPlaying ? 'pause' : 'resume'} • Vibe Play Companion Mode
               </p>
             </div>
 

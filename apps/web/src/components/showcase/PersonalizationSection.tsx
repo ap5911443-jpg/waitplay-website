@@ -157,7 +157,7 @@ export const PersonalizationSection: React.FC = () => {
                       : "opacity-0 translate-x-2 pointer-events-none"
                   }`}
                 >
-                  <span className="font-semibold text-white">WaitPlay</span>
+                  <span className="font-semibold text-white">Vibe Play</span>
                   <span className={`font-bold ${widgetEnabled ? "text-cyan-400" : "text-zinc-400"}`}>
                     {widgetEnabled ? "ON" : "OFF"}
                   </span>
@@ -178,7 +178,7 @@ export const PersonalizationSection: React.FC = () => {
                   <button
                     onClick={() => setWidgetEnabled(!widgetEnabled)}
                     className="w-7 h-7 rounded-full bg-zinc-800 border border-zinc-700 hover:border-zinc-500 flex items-center justify-center text-cyan-400 transition-all cursor-pointer shadow-subtle"
-                    title="Click to toggle WaitPlay"
+                    title="Click to toggle Vibe Play"
                   >
                     <span className="text-xs">⏻</span>
                   </button>

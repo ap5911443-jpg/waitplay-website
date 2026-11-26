@@ -69,7 +69,7 @@ quit_all() {
 }
 total_rss_mb() { ps -axo rss,command | grep -E "waitplay|com.apple.WebKit" | grep -v grep | awk '{s+=$1} END {printf "%.0f", s/1024}'; }
 
-echo "== WaitPlay smoke test: $APP"
+echo "== Vibe Play smoke test: $APP"
 sw_vers 2>/dev/null | sed 's/^/   /'
 
 # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -114,7 +114,7 @@ KA_A=$!
 wait_for "entertainment window visible" 60 state_visible true
 sleep 8
 shot 03-entertainment
-echo "note: total memory of WaitPlay + WebKit processes with the window open: $(total_rss_mb) MB"
+echo "note: total memory of Vibe Play + WebKit processes with the window open: $(total_rss_mb) MB"
 curl -s -H "x-bridge-token: $(cat "$SIG/.bridge-token")" http://127.0.0.1:3150/sessions >"$OUT/sessions-1.json" || true
 grep -q 'claude-code-aaaaaaaa1111' "$OUT/sessions-1.json" && ok "bridge tracks session claude-code-aaaaaaaa1111" || bad "bridge does not list claude-code-aaaaaaaa1111"
 

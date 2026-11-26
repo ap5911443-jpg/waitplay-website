@@ -79,7 +79,7 @@ export const YouTubeContainer: React.FC<YouTubeContainerProps> = ({ onClose }) =
               YouTube
             </span>
             <span className="text-[10px] text-zinc-400 font-semibold uppercase -translate-y-2">
-              WaitPlay
+              Vibe Play
             </span>
           </div>
         </div>

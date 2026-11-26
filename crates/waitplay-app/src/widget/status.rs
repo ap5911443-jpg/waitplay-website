@@ -7,7 +7,7 @@ const FRESH_MS: i64 = 15_000;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Dot {
-    /// WaitPlay is switched off.
+    /// Vibe Play is switched off.
     Paused,
     /// On, nothing to report: teal.
     Active,

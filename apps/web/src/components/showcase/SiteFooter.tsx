@@ -12,7 +12,7 @@ export const SiteFooter: React.FC = () => {
               <div className="w-7 h-7 rounded-lg bg-forest text-canvas flex items-center justify-center">
                 <Gamepad2 className="w-4 h-4" />
               </div>
-              <span className="font-serif font-normal text-2xl tracking-tight text-ink">WaitPlay</span>
+              <span className="font-serif font-normal text-2xl tracking-tight text-ink">Vibe Play</span>
             </div>
             <p className="text-xs font-sans text-ink-soft max-w-sm leading-relaxed">
               Editorial, human-led gaming companion for developers waiting on AI coding agents. Turn 45-second latency into cognitive flow.
@@ -105,7 +105,7 @@ export const SiteFooter: React.FC = () => {
         </div>
 
         <div className="pt-8 border-t border-ink/10 flex flex-col sm:flex-row items-center justify-between text-xs font-sans text-ink-muted gap-4">
-          <p>© 2026 WaitPlay. Designed with editorial warmth inspired by Wispr Flow.</p>
+          <p>© 2026 Vibe Play. Designed with editorial warmth inspired by Wispr Flow.</p>
           <p>Localhost companion bridge • Zero cloud telemetry</p>
         </div>
       </div>

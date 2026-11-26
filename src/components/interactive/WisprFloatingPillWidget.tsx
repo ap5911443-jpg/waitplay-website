@@ -47,7 +47,7 @@ export const WisprFloatingPillWidget: React.FC<WisprFloatingPillWidgetProps> = (
             ? "bg-[#034F46] text-[#FFFFEB] hover:bg-[#023932]"
             : "bg-[#333333] text-[#888888] hover:bg-[#444444]"
         }`}
-        title="Toggle WaitPlay (Alt+W)"
+        title="Toggle Vibe Play (Alt+W)"
       >
         <Power className="w-3 h-3" />
         <span>{enabled ? "ON" : "OFF"}</span>

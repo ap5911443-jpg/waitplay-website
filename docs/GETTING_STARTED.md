@@ -1,6 +1,6 @@
-# Getting Started with WaitPlay
+# Getting Started with Vibe Play
 
-WaitPlay is a local gaming companion for users of AI coding agents like Claude Code.
+Vibe Play is a local gaming companion for users of AI coding agents like Claude Code.
 
 ## Prerequisites
 
@@ -48,7 +48,7 @@ npm run build
 This builds all Rust crates into `target/release/` and creates production assets for `@waitplay/web` in `apps/web/dist` (served by `npm run start:web`).
 
 ## Testing All Simulated Agent Events
-WaitPlay includes a complete interactive simulator directly in the web dashboard so you can test all agent lifecycle behaviors without Claude Code installed:
+Vibe Play includes a complete interactive simulator directly in the web dashboard so you can test all agent lifecycle behaviors without Claude Code installed:
 
 1. Open `http://127.0.0.1:5200`.
 2. Scroll to the **Agent Event Simulator** card at the bottom.

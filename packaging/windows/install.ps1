@@ -1,4 +1,4 @@
-# Installs WaitPlay for the current user (no administrator rights): copies the three executables to
+# Installs Vibe Play for the current user (no administrator rights): copies the three executables to
 # %LOCALAPPDATA%\Programs\WaitPlay, adds a Start menu shortcut and an "Apps & features" entry, and starts the app.
 # Test overrides: WAITPLAY_INSTALL_DIR (destination), WAITPLAY_NO_START=1 (do not launch).
 $ErrorActionPreference = 'Stop'
@@ -18,14 +18,14 @@ $programs = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
 $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut((Join-Path $programs 'WaitPlay.lnk'))
 $shortcut.TargetPath = Join-Path $dest 'waitplay.exe'
 $shortcut.WorkingDirectory = $dest
-$shortcut.Description = 'WaitPlay'
+$shortcut.Description = 'Vibe Play'
 $shortcut.Save()
 
 $key = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\WaitPlay'
 New-Item -Force $key | Out-Null
-Set-ItemProperty $key DisplayName 'WaitPlay'
+Set-ItemProperty $key DisplayName 'Vibe Play'
 Set-ItemProperty $key DisplayVersion $ver
-Set-ItemProperty $key Publisher 'WaitPlay'
+Set-ItemProperty $key Publisher 'Vibe Play'
 Set-ItemProperty $key InstallLocation $dest
 Set-ItemProperty $key DisplayIcon (Join-Path $dest 'waitplay.exe')
 Set-ItemProperty $key UninstallString ('cmd /c "' + (Join-Path $dest 'uninstall.cmd') + '"')

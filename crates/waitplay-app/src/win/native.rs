@@ -92,7 +92,7 @@ pub fn bring_to_top(hwnd: isize) {
 
 /// True while a fullscreen game, a fullscreen video or a borderless fullscreen window is in front: the foreground window covers its
 /// whole monitor (taskbar included) and has no title bar. A normal maximized window stops at the taskbar, or keeps its title bar
-/// when the taskbar hides itself, so it never counts; neither do the desktop, the taskbar or WaitPlay's own windows. The notch hides
+/// when the taskbar hides itself, so it never counts; neither do the desktop, the taskbar or Vibe Play's own windows. The notch hides
 /// for that time instead of floating over it.
 pub fn fullscreen_app_active() -> bool {
     use windows::Win32::Foundation::RECT;

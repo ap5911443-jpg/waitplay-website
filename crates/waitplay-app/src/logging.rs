@@ -1,7 +1,7 @@
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 //! Structured log lines in a macOS-appropriate place (`~/Library/Logs/WaitPlay/waitplay.log`, `<app support>/logs` elsewhere).
 //!
-//! `2026-11-23T10:15:02.123Z INFO  app: widget placed top-right`. Every WaitPlay process appends to the same file (single
+//! `2026-11-23T10:15:02.123Z INFO  app: widget placed top-right`. Every Vibe Play process appends to the same file (single
 //! `write` calls in append mode are not interleaved mid-line). The file rotates to `waitplay.log.1` at 1 MiB, so it never grows
 //! without bound. Logging never fails the caller.
 

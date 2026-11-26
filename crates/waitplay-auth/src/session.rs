@@ -1,7 +1,7 @@
 //! The session manager: owns the signed-in state and keeps it honest without ever blocking local features.
 //!
 //! - Start-up reads the refresh token from the secret store and does **no network call**: the user is "signed in, offline" until
-//!   the first refresh succeeds. WaitPlay's local features never wait for this.
+//!   the first refresh succeeds. Vibe Play's local features never wait for this.
 //! - Refreshing before expiry rotates the refresh token; the new one is written to the secret store *before* the old session is
 //!   dropped from memory. Only one process (the tray app) refreshes, so rotation cannot race.
 //! - A network failure or a 5xx keeps the session (backoff is the caller's timer). Only a definitive "refresh token invalid"
@@ -68,7 +68,7 @@ impl SessionManager {
                 }
             },
             Ok(None) => {}
-            Err(_) => inner.signed_out_reason = Some("WaitPlay could not read your saved sign-in from the system keychain.".into()),
+            Err(_) => inner.signed_out_reason = Some("Vibe Play could not read your saved sign-in from the system keychain.".into()),
         }
         SessionManager { client, store, inner: Mutex::new(inner), now }
     }

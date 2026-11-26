@@ -30,7 +30,7 @@ jobs:
       - name: Install cargo-audit
         run: cargo install cargo-audit --locked
 
-      # The two ignored advisories are in the Linux-only GTK stack pulled in by wry; WaitPlay ships for macOS and Windows only, where
+      # The two ignored advisories are in the Linux-only GTK stack pulled in by wry; Vibe Play ships for macOS and Windows only, where
       # `cargo tree -i glib` / `-i proc-macro-error` print nothing. Everything else fails the job.
       - name: cargo audit
         run: cargo audit --deny warnings --ignore RUSTSEC-2024-0370 --ignore RUSTSEC-2024-0429

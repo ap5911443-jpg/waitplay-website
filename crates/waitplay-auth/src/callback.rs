@@ -141,11 +141,11 @@ impl CallbackServer {
         let head = String::from_utf8_lossy(&buf).into_owned();
         match judge(&head, self.port, &self.nonce) {
             Verdict::Code(code) => {
-                respond(&mut stream, 200, "You are signed in. You can close this tab and return to WaitPlay.");
+                respond(&mut stream, 200, "You are signed in. You can close this tab and return to Vibe Play.");
                 Some(Ok(code))
             }
             Verdict::ProviderError(e) => {
-                respond(&mut stream, 200, "Sign-in was not completed. You can close this tab and return to WaitPlay.");
+                respond(&mut stream, 200, "Sign-in was not completed. You can close this tab and return to Vibe Play.");
                 Some(Err(AuthError::Callback(format!("Sign-in was not completed: {e}"))))
             }
             Verdict::Reject(status) => {
@@ -165,7 +165,7 @@ fn respond(stream: &mut TcpStream, status: u16, message: &str) {
         _ => "Bad Request",
     };
     let body = format!(
-        "<!doctype html><meta charset=utf-8><meta name=referrer content=no-referrer><title>WaitPlay</title>\
+        "<!doctype html><meta charset=utf-8><meta name=referrer content=no-referrer><title>Vibe Play</title>\
          <body style=\"font:16px system-ui,sans-serif;display:grid;place-items:center;height:90vh;color:#222\"><p>{message}</p></body>"
     );
     let head = format!(

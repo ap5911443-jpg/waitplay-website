@@ -164,7 +164,7 @@ pub fn other_companion_visible() -> bool {
     let own = own_stem();
     let mut found = false;
     each_window(|h| {
-        if unsafe { IsWindowVisible(h) }.as_bool() && window_title(h) == "WaitPlay" {
+        if unsafe { IsWindowVisible(h) }.as_bool() && window_title(h) == "Vibe Play" {
             let pid = window_pid(id_of(h));
             if pid != me && pid != 0 && !own.is_empty() && process_stem(pid).as_deref() == Some(own) {
                 found = true;

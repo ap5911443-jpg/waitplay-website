@@ -27,8 +27,8 @@ use tao::window::{Window, WindowBuilder};
 use waitplay_core::{now_ms, process, state, BridgeClient};
 use wry::{WebContext, WebView, WebViewBuilder};
 
-/// The title the platform layer uses to tell the widget from companion windows (which are titled "WaitPlay").
-const TITLE: &str = "WaitPlay Widget";
+/// The title the platform layer uses to tell the widget from companion windows (which are titled "Vibe Play").
+const TITLE: &str = "Vibe Play Widget";
 
 /// Runs the widget until it exits. Blocks.
 pub fn run() -> Result<(), String> {
@@ -427,7 +427,7 @@ fn register_hotkey(proxy: &EventLoopProxy<Ev>) -> Option<global_hotkey::GlobalHo
 
     #[allow(unused_mut)]
     let mut hotkey = HotKey::new(Some(Modifiers::ALT), Code::KeyW);
-    // debug builds only: lets an isolated test run use a free key while a real WaitPlay owns Alt+W
+    // debug builds only: lets an isolated test run use a free key while a real Vibe Play owns Alt+W
     #[cfg(debug_assertions)]
     if let Some(h) = std::env::var("WAITPLAY_TEST_HOTKEY").ok().and_then(|s| s.parse::<HotKey>().ok()) {
         hotkey = h;

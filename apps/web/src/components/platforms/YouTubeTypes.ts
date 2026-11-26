@@ -211,9 +211,9 @@ export const INITIAL_YOUTUBE_VIDEOS: YouTubeVideo[] = [
   },
   {
     id: "yt-6",
-    title: "WaitPlay Architecture Deep Dive: Turning AI Agent Latency Into Flow State",
+    title: "Vibe Play Architecture Deep Dive: Turning AI Agent Latency Into Flow State",
     channel: {
-      name: "WaitPlay Official",
+      name: "Vibe Play Official",
       avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
       subscribers: "150K subscribers",
       verified: true,
@@ -228,7 +228,7 @@ export const INITIAL_YOUTUBE_VIDEOS: YouTubeVideo[] = [
     badge: "SYSTEM DESIGN",
     likes: "42K",
     likesCount: 42000,
-    description: "How WaitPlay bridges local terminal agents (Claude Code, Codex, Opencode) over loopback WebSockets to spawn instant micro-interactions and keep developers hyper-focused.",
+    description: "How Vibe Play bridges local terminal agents (Claude Code, Codex, Opencode) over loopback WebSockets to spawn instant micro-interactions and keep developers hyper-focused.",
     commentsCount: 520,
     comments: [
       {

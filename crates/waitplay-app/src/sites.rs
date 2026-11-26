@@ -1,4 +1,4 @@
-//! The sites WaitPlay hosts, their home pages and their real logos.
+//! The sites Vibe Play hosts, their home pages and their real logos.
 //!
 //! Logo geometry: Simple Icons (CC0), 24x24 viewBox. Colours are each brand's published colour. One place to add a site:
 //! an entry in [`SITES`] and a branch in [`logo_svg`].

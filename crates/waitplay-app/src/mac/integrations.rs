@@ -1,7 +1,7 @@
-//! The AI agents WaitPlay can listen to, whether they are present on this Mac, and how each one is connected.
+//! The AI agents Vibe Play can listen to, whether they are present on this Mac, and how each one is connected.
 //!
 //! * Claude Code: hooks in `~/.claude/settings.json` (installed and removed here, idempotently, preserving everything else).
-//! * OpenCode, Codex, OMP, Cline: a watcher (`waitplay-hook <agent>-watch`) that WaitPlay runs while the agent is present.
+//! * OpenCode, Codex, OMP, Cline: a watcher (`waitplay-hook <agent>-watch`) that Vibe Play runs while the agent is present.
 //! * Cursor, Antigravity: IDE hooks the user wires up by hand (instructions shown in Settings).
 
 use serde_json::{json, Map, Value};
@@ -9,9 +9,9 @@ use std::path::{Path, PathBuf};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Kind {
-    /// Hooks written into the agent's own settings file by WaitPlay.
+    /// Hooks written into the agent's own settings file by Vibe Play.
     ClaudeHooks,
-    /// A long-running `waitplay-hook <command>` that WaitPlay supervises.
+    /// A long-running `waitplay-hook <command>` that Vibe Play supervises.
     Watcher(&'static str),
     /// The user adds the hook themselves.
     Manual(&'static str),
@@ -71,7 +71,7 @@ fn claude_command(hook_exe: &Path, arg: &str) -> String {
     format!("{} claude-code {}", shell_quote(hook_exe), arg)
 }
 
-/// A hook command that WaitPlay wrote (whichever location it pointed at).
+/// A hook command that Vibe Play wrote (whichever location it pointed at).
 fn is_ours(command: &str) -> bool {
     command.contains("waitplay-hook") && command.contains(" claude-code ")
 }
@@ -80,9 +80,9 @@ fn is_ours(command: &str) -> bool {
 pub enum ClaudeState {
     NotConfigured,
     Configured,
-    /// Hooks exist but point at another WaitPlay location (the app moved): installing again fixes it.
+    /// Hooks exist but point at another Vibe Play location (the app moved): installing again fixes it.
     Outdated,
-    /// The settings file cannot be read as JSON: WaitPlay leaves it alone.
+    /// The settings file cannot be read as JSON: Vibe Play leaves it alone.
     Error(String),
 }
 
@@ -165,7 +165,7 @@ pub fn claude_install(settings: &Path, hook_exe: &Path) -> Result<(), String> {
     write_settings(settings, &root)
 }
 
-/// Removes WaitPlay's hooks and nothing else.
+/// Removes Vibe Play's hooks and nothing else.
 pub fn claude_remove(settings: &Path) -> Result<(), String> {
     if !settings.exists() {
         return Ok(());

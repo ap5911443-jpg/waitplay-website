@@ -8,7 +8,7 @@ Include the version (the About line in Settings), the platform, and the steps to
 
 ## Scope and design
 
-WaitPlay's bridge listens on `127.0.0.1` only; every route except `/health` needs a per-user token, WebSocket connections must
+Vibe Play's bridge listens on `127.0.0.1` only; every route except `/health` needs a per-user token, WebSocket connections must
 come from a local origin and present the token, and prompts are never broadcast. See `docs/ARCHITECTURE.md` for the model and
 `docs/PRIVACY.md` for what data is handled. Release signing and notarization are described in `docs/RELEASE_SIGNING.md`.
 

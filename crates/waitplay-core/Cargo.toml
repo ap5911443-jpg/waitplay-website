@@ -3,7 +3,7 @@ name = "waitplay-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "WaitPlay shared protocol, paths, signal files and bridge client"
+description = "Vibe Play shared protocol, paths, signal files and bridge client"
 
 [dependencies]
 serde.workspace = true

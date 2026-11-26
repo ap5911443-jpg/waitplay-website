@@ -177,14 +177,14 @@ button{font:inherit;color:inherit;cursor:pointer}
     <div id="stage" class="light">
       <div id="wall"></div>
       <div id="menubar"><div class="l"><span class="gem"></span><b id="appName">Terminal</b><span class="mi">Shell</span><span class="mi">Edit</span><span class="mi">View</span><span class="mi">Window</span><span class="mi">Help</span></div>
-        <div class="r"><div class="mi" id="wpItem" data-s="idle" title="WaitPlay"><svg viewBox="0 0 16 16"><path d="M5 2.8v10.4L13.2 8z" fill="currentColor"/></svg><i class="dotk"></i></div>
+        <div class="r"><div class="mi" id="wpItem" data-s="idle" title="Vibe Play"><svg viewBox="0 0 16 16"><path d="M5 2.8v10.4L13.2 8z" fill="currentColor"/></svg><i class="dotk"></i></div>
           <span>100%</span><span id="clock">9:41 AM</span></div></div>
       <div id="desk"></div>
       <div id="dock"></div>
       <div id="taskbar"><div class="tc" id="tbIcons"></div>
-        <div class="tr"><span class="ti">&#8963;</span><span class="ti" id="wpTray" data-s="idle" title="WaitPlay"><svg viewBox="0 0 16 16"><path d="M5 2.8v10.4L13.2 8z" fill="currentColor"/></svg><i class="dotk"></i></span><span class="ti">&#128246;</span><span class="ti" id="clock2">9:41 AM<br>11/26/2026</span></div></div>
+        <div class="tr"><span class="ti">&#8963;</span><span class="ti" id="wpTray" data-s="idle" title="Vibe Play"><svg viewBox="0 0 16 16"><path d="M5 2.8v10.4L13.2 8z" fill="currentColor"/></svg><i class="dotk"></i></span><span class="ti">&#128246;</span><span class="ti" id="clock2">9:41 AM<br>11/26/2026</span></div></div>
       <div id="notif"><div class="gem">&#9654;</div><div><b id="nTitle"></b><span id="nBody"></span></div></div>
-      <div id="toast"><div id="toastMsg"></div><button id="relaunch">Relaunch WaitPlay</button></div>
+      <div id="toast"><div id="toastMsg"></div><button id="relaunch">Relaunch Vibe Play</button></div>
       <div id="fsv"><div class="scr"></div><div class="t">Placeholder fullscreen video</div><button class="x" id="fsx">Exit fullscreen (Esc)</button></div>
     </div>
   </div>
@@ -237,7 +237,7 @@ const AGENT_NAMES = { 'claude-code': 'Claude Code', codex: 'Codex', opencode: 'O
 const TERMINAL_NAME = IS_WIN ? 'Windows Terminal' : 'Terminal';
 
 /* ---- panel text per platform ---- */
-$('#pTitle').textContent = IS_WIN ? 'WaitPlay on Windows' : 'WaitPlay on a Mac';
+$('#pTitle').textContent = IS_WIN ? 'Vibe Play on Windows' : 'Vibe Play on a Mac';
 $('#pSub').textContent = IS_WIN ? "An interactive simulation of the Windows app. The notch widget, Settings, Account and the entertainment header are the app's real UI pages; click around like you would on a PC." : "An interactive simulation of the macOS app. The widget, Settings, Account and the entertainment header are the app's real UI pages; click around like you would on a Mac.";
 $('#menuB').textContent = IS_WIN ? 'Open the tray menu' : 'Open the menu bar menu';
 $('#osLinks').innerHTML = IS_WIN ? '<a href="../mac/">See the Mac version</a>' : '<a href="../windows/">See the Windows version</a>';
@@ -302,7 +302,7 @@ function menuEntries(){
   const subs = SITES.filter(([k]) => S.settings.platforms[k]).map(([k, l]) => ({ id: 'platform:' + k, text: l, checked: S.settings.preferredPlatform === k }));
   subs.push({ sep: 1 }, { id: 'open-ent', text: 'Open ' + siteLabel(S.settings.preferredPlatform) + ' Now' });
   m.push({ text: 'Entertainment: ' + siteLabel(S.settings.preferredPlatform), sub: subs }, { id: 'widget', text: 'Show Floating Widget', checked: S.settings.showWidget }, { sep: 1 },
-    { id: 'account', text: 'Account\u2026' }, { id: 'settings', text: 'Settings\u2026' }, { sep: 1 }, { id: 'quit', text: 'Quit WaitPlay' });
+    { id: 'account', text: 'Account\u2026' }, { id: 'settings', text: 'Settings\u2026' }, { sep: 1 }, { id: 'quit', text: 'Quit Vibe Play' });
   return m;
 }
 function onMenu(id){
@@ -371,7 +371,7 @@ let zTop = 100;
 const FG_OF = { term: 'terminal', other: 'other', ent: 'waitplay', settings: 'waitplay', account: 'waitplay' };
 function focusWin(w){
   w.style.zIndex = ++zTop; S.fg = FG_OF[w.id] || 'terminal';
-  const names = { term: TERMINAL_NAME, ent: 'WaitPlay', settings: 'WaitPlay', account: 'WaitPlay', other: IS_WIN ? 'Notepad' : 'Notes' }; $('#appName').textContent = names[w.id] || TERMINAL_NAME;
+  const names = { term: TERMINAL_NAME, ent: 'Vibe Play', settings: 'Vibe Play', account: 'Vibe Play', other: IS_WIN ? 'Notepad' : 'Notes' }; $('#appName').textContent = names[w.id] || TERMINAL_NAME;
   syncTaskbar(); syncAway();
 }
 function startDrag(win, sx, sy){
@@ -408,7 +408,7 @@ term.insertBefore(term.querySelector('.tb'), tbody);
 function termReset(){
   tbody.replaceChildren(tprompt);
   tline('<div class="box">\u273b Welcome to <b>Claude Code</b><br><span class="dim">' + (IS_WIN ? 'C:\\projects\\shop-api' : '~/projects/shop-api') + '</span></div>');
-  tline('<span class="dim">Tip: WaitPlay is watching this terminal through the Claude Code hooks.</span>');
+  tline('<span class="dim">Tip: Vibe Play is watching this terminal through the Claude Code hooks.</span>');
 }
 tInput.addEventListener('keydown', e => { if (e.key === 'Enter') { runPrompt(tInput.value.trim()); tInput.value = ''; } });
 tInput.addEventListener('mousedown', e => e.stopPropagation());
@@ -422,7 +422,7 @@ function closeOther(){ other.classList.add('hide'); if (S.fg === 'other') { S.fg
 
 /* ---- entertainment window ---- */
 const ent = mkWin('ent', 0, 0, 440, 700);
-const entTitle = IS_WIN ? null : chrome(ent, 'WaitPlay', 28, { close: () => closeEnt(true), zoom: () => toggleEntZoom() });
+const entTitle = IS_WIN ? null : chrome(ent, 'Vibe Play', 28, { close: () => closeEnt(true), zoom: () => toggleEntZoom() });
 if (entTitle) { entTitle.className = 'titlebar'; ent.append(entTitle); }
 const headerHolder = el('div', { style: IS_WIN ? 'position:absolute;left:6px;right:6px;top:6px;height:44px' : 'position:absolute;left:0;right:0;top:28px;height:44px' });
 const siteBox = el('div', { class: 'site', style: IS_WIN ? 'top:56px' : 'top:72px' });
@@ -527,30 +527,30 @@ function pushWidget(){ call('widget', w => w.wpWidget.apply(widgetState())); }
 const SET_TOP = IS_WIN ? 32 : 0;
 const setWin = mkWin('settings', IS_WIN ? 300 : 340, 120, 760, 540 + SET_TOP);
 const setHolder = el('div', { style: `position:absolute;left:0;right:0;bottom:0;top:${SET_TOP}px` });
-if (IS_WIN) { setWin.append(chrome(setWin, 'WaitPlay', 0, { close: () => closeWin('settings') })); }
+if (IS_WIN) { setWin.append(chrome(setWin, 'Vibe Play', 0, { close: () => closeWin('settings') })); }
 else { const c = chrome(setWin, '', 0, { close: () => closeWin('settings') }); c.remove(); setWin.querySelector('.tl').style.top = '16px'; }
 setWin.append(setHolder);
 let setFrame;
 function permissions(){
   if (!IS_WIN) return [
-    { id: 'ax', title: 'Accessibility', why: 'Lets WaitPlay detect when you switch back to your editor.', affects: 'automatic return to your editor stops working.', state: 'granted', canOpen: true, pane: 'Privacy_Accessibility' },
+    { id: 'ax', title: 'Accessibility', why: 'Lets Vibe Play detect when you switch back to your editor.', affects: 'automatic return to your editor stops working.', state: 'granted', canOpen: true, pane: 'Privacy_Accessibility' },
     { id: 'notif', title: 'Notifications', why: 'Shows a banner when an agent needs your input.', affects: 'alerts when agents finish.', state: 'granted', canOpen: true, pane: 'Notifications' },
     { id: 'auto', title: 'Automation', why: 'Not needed for the current setup.', affects: '', state: 'notRequired', canOpen: false, pane: '' }];
   return [
-    { id: 'startupApps', title: 'Startup apps', why: 'Lets WaitPlay start by itself when you sign in to Windows.', affects: 'Launch at login. If you switch WaitPlay off under Startup apps in Windows Settings, it will not start automatically.', state: S.settings.launchAtLogin ? 'unknown' : 'notRequired', canOpen: true, pane: 'startupApps' },
-    { id: 'input', title: 'Keyboard and mouse', why: 'WaitPlay does not record what you type. While the entertainment window is open it only notices that you are typing or scrolling in the terminal that started the agent, so it can step aside.', affects: 'Nothing is stored or sent anywhere.', state: 'notRequired', canOpen: false, pane: '' },
-    { id: 'screenCapture', title: 'Screen capture', why: 'WaitPlay never captures your screen, so it does not ask for this.', affects: 'Nothing.', state: 'notRequired', canOpen: false, pane: '' },
-    { id: 'network', title: 'Network', why: 'Coding agents report to WaitPlay over 127.0.0.1, inside your PC. The entertainment sites use your normal internet connection.', affects: 'Nothing leaves your PC except the sites you open.', state: 'notRequired', canOpen: false, pane: '' }];
+    { id: 'startupApps', title: 'Startup apps', why: 'Lets Vibe Play start by itself when you sign in to Windows.', affects: 'Launch at login. If you switch Vibe Play off under Startup apps in Windows Settings, it will not start automatically.', state: S.settings.launchAtLogin ? 'unknown' : 'notRequired', canOpen: true, pane: 'startupApps' },
+    { id: 'input', title: 'Keyboard and mouse', why: 'Vibe Play does not record what you type. While the entertainment window is open it only notices that you are typing or scrolling in the terminal that started the agent, so it can step aside.', affects: 'Nothing is stored or sent anywhere.', state: 'notRequired', canOpen: false, pane: '' },
+    { id: 'screenCapture', title: 'Screen capture', why: 'Vibe Play never captures your screen, so it does not ask for this.', affects: 'Nothing.', state: 'notRequired', canOpen: false, pane: '' },
+    { id: 'network', title: 'Network', why: 'Coding agents report to Vibe Play over 127.0.0.1, inside your PC. The entertainment sites use your normal internet connection.', affects: 'Nothing leaves your PC except the sites you open.', state: 'notRequired', canOpen: false, pane: '' }];
 }
 function runtimeState(){
   const st = overall();
   const agents = Object.keys(AGENT_NAMES).map(id => { const r = agentRows().find(a => a.id === id), s = S.integrations[id];
     const det = s !== 'missing', mk = id === 'claude-code' ? { state: s === 'configured' ? 'configured' : 'notConfigured', detail: s === 'configured' ? 'Hooks installed in ' + (IS_WIN ? '%USERPROFILE%\\.claude\\settings.json' : '~/.claude/settings.json') : 'Hooks are not installed yet.', canInstall: true, howTo: '' } :
       id === 'cursor' ? { state: 'notConfigured', detail: IS_WIN ? 'Cursor was not found on this PC.' : 'Not installed on this Mac.', canInstall: false, howTo: '' } :
-      { state: s === 'configured' ? 'configured' : 'notConfigured', detail: s === 'configured' ? 'WaitPlay watches this agent while automation is on.' : 'The watcher is off.', canInstall: true, howTo: '' };
+      { state: s === 'configured' ? 'configured' : 'notConfigured', detail: s === 'configured' ? 'Vibe Play watches this agent while automation is on.' : 'The watcher is off.', canInstall: true, howTo: '' };
     return { id, name: AGENT_NAMES[id], detected: det, activity: r ? r.activity : 'idle', integration: mk }; });
   return { enabled: S.enabled, status: st, bridge: { connected: S.bridgeOk },
-    errors: S.bridgeOk ? [] : [{ id: 'bridge', severity: 'error', message: 'The local bridge is not running, so agent activity cannot be seen.', hint: 'WaitPlay starts it automatically; if this stays, restart WaitPlay.' }],
+    errors: S.bridgeOk ? [] : [{ id: 'bridge', severity: 'error', message: 'The local bridge is not running, so agent activity cannot be seen.', hint: 'Vibe Play starts it automatically; if this stays, restart Vibe Play.' }],
     agents, permissions: permissions(), shortcutErrors: { toggleAutomation: null, toggleWidget: null }, version: '0.2.0', build: 'demo',
     logPath: IS_WIN ? '%LOCALAPPDATA%\\WaitPlay\\logs\\waitplay.log' : '~/Library/Logs/WaitPlay/waitplay.log', website: '#', supportUrl: '#', update: S.update };
 }
@@ -571,7 +571,7 @@ function onSettings(m, d){
 /* ---- account window (real account page) ---- */
 const accWin = mkWin('account', IS_WIN ? 480 : 520, 80, 400, 620 + SET_TOP);
 const accHolder = el('div', { style: `position:absolute;left:0;right:0;bottom:0;top:${SET_TOP}px` });
-if (IS_WIN) accWin.append(chrome(accWin, 'WaitPlay Account', 0, { close: () => closeWin('account') }));
+if (IS_WIN) accWin.append(chrome(accWin, 'Vibe Play Account', 0, { close: () => closeWin('account') }));
 else { const c = chrome(accWin, '', 0, { close: () => closeWin('account') }); c.remove(); }
 accWin.append(accHolder);
 function accountView(){
@@ -637,7 +637,7 @@ function render(){
 let nTimer;
 function banner(title, body){ $('#nTitle').textContent = title; $('#nBody').textContent = body; $('#notif').classList.add('on'); clearTimeout(nTimer); nTimer = setTimeout(() => $('#notif').classList.remove('on'), 5200); }
 function quitApp(){ S.running = false; widgetWin.style.display = 'none'; ent.classList.add('hide'); setWin.classList.add('hide'); accWin.classList.add('hide'); S.ent.visible = false; tray.dataset.s = 'off'; tray.style.opacity = .4;
-  $('#toastMsg').innerHTML = '<b>WaitPlay quit</b><br><span style="opacity:.7">The ' + (IS_WIN ? 'tray icon' : 'menu bar item') + ' and the widget are gone.</span>'; $('#toast').style.display = 'block'; }
+  $('#toastMsg').innerHTML = '<b>Vibe Play quit</b><br><span style="opacity:.7">The ' + (IS_WIN ? 'tray icon' : 'menu bar item') + ' and the widget are gone.</span>'; $('#toast').style.display = 'block'; }
 $('#relaunch').addEventListener('click', () => { S.running = true; tray.style.opacity = 1; $('#toast').style.display = 'none'; render(); });
 
 /* ---- the scripted agent story ---- */
@@ -669,7 +669,7 @@ function finishAgent(id, think){
 }
 function startSecond(){
   if (!S.sessions.some(s => s.agent === 'claude-code' && s.activity === 'working')) { runPrompt(''); later(900, startSecond); return; }
-  addSession('codex', IS_WIN ? 'PowerShell' : 'iTerm2'); render(); markDone('second'); tline('<span class="dim">(Codex started in ' + (IS_WIN ? 'PowerShell' : 'iTerm2') + ': WaitPlay now tracks 2 sessions)</span>');
+  addSession('codex', IS_WIN ? 'PowerShell' : 'iTerm2'); render(); markDone('second'); tline('<span class="dim">(Codex started in ' + (IS_WIN ? 'PowerShell' : 'iTerm2') + ': Vibe Play now tracks 2 sessions)</span>');
   later(6500, () => finishAgent('codex'));
 }
 function needsYou(){
@@ -707,7 +707,7 @@ function syncTaskbar(){
     const dock = $('#dock'); dock.replaceChildren(
       ic('linear-gradient(180deg,#5ac8fa,#0a84ff)', '\u263a', true, 'Finder', () => openOther()), ic('linear-gradient(180deg,#34c759,#248a3d)', '\u2709', false, 'Messages', () => openOther()),
       ic('linear-gradient(180deg,#444,#111)', '>_', true, 'Terminal', () => toTerminal()), ic('linear-gradient(180deg,#ff9f0a,#ff6a00)', '\u270e', false, 'Notes', () => openOther()));
-    if (S.settings.showDockIcon) dock.append(el('div', { class: 'dk run', title: 'WaitPlay', style: 'background:linear-gradient(135deg,#8b92ff,#4046e0)', onclick: () => openWin('settings') }, '\u25b6'));
+    if (S.settings.showDockIcon) dock.append(el('div', { class: 'dk run', title: 'Vibe Play', style: 'background:linear-gradient(135deg,#8b92ff,#4046e0)', onclick: () => openWin('settings') }, '\u25b6'));
     dock.append(ic('linear-gradient(180deg,#8e8e93,#636366)', '\u2699', false, 'System Settings', () => openOther()));
   }
 }

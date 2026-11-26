@@ -17,7 +17,7 @@ export const InteractiveSpeedSlider: React.FC = () => {
                 : "text-[#FFFFEB]/70 hover:text-[#FFFFEB]"
             }`}
           >
-            Without WaitPlay (Broken Habit)
+            Without Vibe Play (Broken Habit)
           </button>
           <button
             onClick={() => setActiveMode("with")}
@@ -27,14 +27,14 @@ export const InteractiveSpeedSlider: React.FC = () => {
                 : "text-[#FFFFEB]/70 hover:text-[#FFFFEB]"
             }`}
           >
-            With WaitPlay (Micro-Flow)
+            With Vibe Play (Micro-Flow)
           </button>
         </div>
       </div>
 
       {/* Comparison Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-        {/* Card 1: Without WaitPlay */}
+        {/* Card 1: Without Vibe Play */}
         <div
           className={`rounded-[28px] p-7 sm:p-9 transition-all duration-300 border ${
             activeMode === "without"
@@ -78,7 +78,7 @@ export const InteractiveSpeedSlider: React.FC = () => {
           </div>
         </div>
 
-        {/* Card 2: With WaitPlay */}
+        {/* Card 2: With Vibe Play */}
         <div
           className={`rounded-[28px] p-7 sm:p-9 transition-all duration-300 border ${
             activeMode === "with"
@@ -94,7 +94,7 @@ export const InteractiveSpeedSlider: React.FC = () => {
               </span>
             </div>
             <span className="text-[12px] font-mono text-[#F0D7FF] bg-[#034F46] px-2 py-0.5 rounded-full border border-[#639085]">
-              WaitPlay Companion
+              Vibe Play Companion
             </span>
           </div>
 

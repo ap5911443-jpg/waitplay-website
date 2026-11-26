@@ -1,4 +1,4 @@
-# Releasing WaitPlay
+# Releasing Vibe Play
 
 Release files (the version comes from `version` in the workspace `Cargo.toml`; every name below uses it):
 
@@ -52,7 +52,7 @@ files `gh attestation verify <file> --repo ap5911443-jpg/waitplay-website`.
 
 ## Updates
 
-WaitPlay has **no automatic updater** today: it makes no network request to check for updates (the *Check for updates* button only
+Vibe Play has **no automatic updater** today: it makes no network request to check for updates (the *Check for updates* button only
 refreshes the page, and says so). Users update by installing the newer DMG or setup file over the old one. If an updater is added
 it must be opt-in, use HTTPS only, and verify a signature before installing (Sparkle with EdDSA on macOS; a signed installer on
 Windows), and `docs/PRIVACY.md` must be updated at the same time.

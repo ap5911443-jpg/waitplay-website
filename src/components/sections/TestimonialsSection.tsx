@@ -17,7 +17,7 @@ export const TestimonialsSection: React.FC = () => {
         </EditorialHeading>
 
         <p className="font-sans text-[17px] sm:text-[19px] text-[#666666] leading-[1.6]">
-          Engineers building with Claude Code, Cursor, and OMP share how WaitPlay eliminated prompt-downtime context fractures.
+          Engineers building with Claude Code, Cursor, and OMP share how Vibe Play eliminated prompt-downtime context fractures.
         </p>
       </div>
 

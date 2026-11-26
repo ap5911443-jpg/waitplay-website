@@ -269,7 +269,7 @@ impl AccountService {
             let pair = pkce::new_pair();
             let url = self.mgr.client().authorize_url(provider, &server.redirect_url(), &pair.challenge);
             if !open(&url) {
-                return Err(AuthError::Callback("WaitPlay could not open your browser.".into()));
+                return Err(AuthError::Callback("Vibe Play could not open your browser.".into()));
             }
             let code = server.wait(OAUTH_TIMEOUT, &|| cancel.load(Ordering::SeqCst))?;
             self.mgr.client().exchange_code(&code, &pair.verifier)
@@ -342,7 +342,7 @@ impl AccountService {
 
         let registration = cloud::register_device(client, &token, &self.device_id(), &device_name(), platform(), env!("CARGO_PKG_VERSION"), explicit)?;
         if registration == DeviceRegistration::Revoked {
-            // this installation was removed from the account (from another device): sign out here, keep local WaitPlay features
+            // this installation was removed from the account (from another device): sign out here, keep local Vibe Play features
             self.mgr.force_sign_out("This device was removed from your account. Sign in again to add it back.");
             self.clear_cache();
             return Err(AuthError::SessionExpired);

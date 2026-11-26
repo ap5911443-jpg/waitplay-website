@@ -80,7 +80,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-              <span className="font-serif text-[26px] leading-7 font-normal text-ink">WaitPlay</span>
+              <span className="font-serif text-[26px] leading-7 font-normal text-ink">Vibe Play</span>
               <span className="text-[10px] uppercase tracking-[0.08em] font-semibold px-2 py-0.5 rounded-full bg-canvas-muted text-ink-soft">
                 Claude Code Companion
               </span>
@@ -125,7 +125,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <Gamepad2 className="w-8 h-8" />
           </div>
           <div>
-            <h2 className="font-serif text-4xl leading-[1.1] font-normal text-ink">WaitPlay for Codex</h2>
+            <h2 className="font-serif text-4xl leading-[1.1] font-normal text-ink">Vibe Play for Codex</h2>
             <p className="text-[15px] leading-[1.5] text-ink-soft max-w-sm mt-2 mx-auto">
               {stateMachine.status === "WORKING"
                 ? "Codex is reasoning... Starting game now!"
@@ -240,7 +240,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
           {/* Footer */}
           <footer className="border-t border-ink/10 px-5 sm:px-8 py-6 text-center text-xs leading-[1.5] text-ink-soft">
-            WaitPlay • Browser-based gaming companion for AI coding agents • Localhost companion bridge
+            Vibe Play • Browser-based gaming companion for AI coding agents • Localhost companion bridge
           </footer>
         </>
       )}

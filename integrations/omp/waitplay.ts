@@ -72,7 +72,7 @@ export default function (pi: PiEmitter) {
   const CLOSE_FILE = path.join(process.env.TEMP || "C:\\Users\\ASUS\\AppData\\Local\\Temp", "waitplay",
     `.waitplay-close-${sessionKey.replace(/[^A-Za-z0-9_-]/g, "_")}.json`);
 
-  function isWaitPlayEnabled(): boolean {
+  function isVibe PlayEnabled(): boolean {
     try {
       const candidates = [
         path.join(process.env.TEMP || "C:\\Users\\ASUS\\AppData\\Local\\Temp", "waitplay", ".waitplay-enabled.json"),
@@ -151,7 +151,7 @@ export default function (pi: PiEmitter) {
   let hasPoppedForPrompt = false;
 
   function popApp() {
-    if (!isWaitPlayEnabled()) {
+    if (!isVibe PlayEnabled()) {
       return;
     }
     if (hasPoppedForPrompt) {

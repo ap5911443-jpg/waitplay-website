@@ -6,24 +6,24 @@ export const FAQSection: React.FC = () => {
 
   const faqs = [
     {
-      q: "Where does WaitPlay work?",
-      a: "WaitPlay works across Windows Terminal, PowerShell, CMD, VS Code integrated terminal, Cursor, and iTerm2. It supports Claude Code, OpenAI Codex, OMP (One More Prompt), Cline, OpenCode, and MCP tools.",
+      q: "Where does Vibe Play work?",
+      a: "Vibe Play works across Windows Terminal, PowerShell, CMD, VS Code integrated terminal, Cursor, and iTerm2. It supports Claude Code, OpenAI Codex, OMP (One More Prompt), Cline, OpenCode, and MCP tools.",
     },
     {
       q: "How does it detect when an agent starts and finishes?",
-      a: "WaitPlay provides lightweight event hooks that listen to standard agent lifecycle signals (e.g. prompt submission, tool invocation, and turn completion). The moment your agent starts thinking, the game board pops open; the instant it outputs code or asks for user approval, the game auto-stops and yields focus back to your terminal.",
+      a: "Vibe Play provides lightweight event hooks that listen to standard agent lifecycle signals (e.g. prompt submission, tool invocation, and turn completion). The moment your agent starts thinking, the game board pops open; the instant it outputs code or asks for user approval, the game auto-stops and yields focus back to your terminal.",
     },
     {
       q: "What if I am managing multiple terminal tabs at the same time?",
-      a: "Each terminal tab has an isolated session tracker (e.g. Term - 1, Term - 2). When you move between tabs, WaitPlay pairs with the active agent. You can also click the floating Wispr Flow desktop button to turn WaitPlay OFF in one click — muting all popups across all terminal tabs so you can guide another agent in peace.",
+      a: "Each terminal tab has an isolated session tracker (e.g. Term - 1, Term - 2). When you move between tabs, Vibe Play pairs with the active agent. You can also click the floating Wispr Flow desktop button to turn Vibe Play OFF in one click — muting all popups across all terminal tabs so you can guide another agent in peace.",
     },
     {
-      q: "Does WaitPlay upload any code, telemetry, or prompts?",
-      a: "Never. WaitPlay's bridge binds exclusively to loopback 127.0.0.1. There are zero cloud servers, zero analytics, zero cookies, and zero external network calls. All game logic and agent status remain 100% on your machine.",
+      q: "Does Vibe Play upload any code, telemetry, or prompts?",
+      a: "Never. Vibe Play's bridge binds exclusively to loopback 127.0.0.1. There are zero cloud servers, zero analytics, zero cookies, and zero external network calls. All game logic and agent status remain 100% on your machine.",
     },
     {
-      q: "Is WaitPlay free and open source?",
-      a: "Yes. WaitPlay is 100% free, MIT licensed, and open-source on GitHub.",
+      q: "Is Vibe Play free and open source?",
+      a: "Yes. Vibe Play is 100% free, MIT licensed, and open-source on GitHub.",
     },
   ];
 

@@ -77,7 +77,7 @@ impl CodexState {
             if !self.active {
                 self.active = true;
                 env.clear_dismissal(SESSION);
-                env.log(&format!("[WaitPlay Watcher] ChatGPT/Codex prompt started! Thinking/reasoning... (log {})", id));
+                env.log(&format!("[Vibe Play Watcher] ChatGPT/Codex prompt started! Thinking/reasoning... (log {})", id));
                 env.post("task_started", None, None);
                 self.pop(env);
             }
@@ -97,14 +97,14 @@ impl CodexState {
 
     fn pop(&self, env: &mut dyn Env) {
         if !env.is_enabled() {
-            env.log("[WaitPlay Watcher] WaitPlay is turned OFF, skipping popup.");
+            env.log("[Vibe Play Watcher] Vibe Play is turned OFF, skipping popup.");
             return;
         }
         if env.is_prompt_dismissed(SESSION) {
-            env.log("[WaitPlay Watcher] Prompt was dismissed by user, skipping popup.");
+            env.log("[Vibe Play Watcher] Prompt was dismissed by user, skipping popup.");
             return;
         }
-        env.log("[WaitPlay Watcher] Launching native WaitPlay desktop application...");
+        env.log("[Vibe Play Watcher] Launching native Vibe Play desktop application...");
         env.clear_close_signal(SESSION);
         env.pop_app(&PopRequest { session: SESSION.into(), terminal: None, prompt_time: None, parent_pid: std::process::id() });
     }
@@ -118,7 +118,7 @@ impl CodexState {
             if env.now_ms() >= due {
                 self.active = false;
                 self.completion = None;
-                env.log(&format!("[WaitPlay Watcher] ChatGPT/Codex finished turn! (log {})", end_id));
+                env.log(&format!("[Vibe Play Watcher] ChatGPT/Codex finished turn! (log {})", end_id));
                 env.clear_dismissal(SESSION);
                 env.post("task_completed", None, None);
                 env.write_close_signal(SESSION);
@@ -155,7 +155,7 @@ impl CodexWatcher {
         }
         self.last_log_id = max.unwrap_or(0);
         self.conn = Some(conn);
-        env.log(&format!("[WaitPlay Watcher] Connected to Codex logs DB. Baseline log ID: {}", self.last_log_id));
+        env.log(&format!("[Vibe Play Watcher] Connected to Codex logs DB. Baseline log ID: {}", self.last_log_id));
         true
     }
 
@@ -212,7 +212,7 @@ pub fn db_path() -> PathBuf {
 pub fn run_watch() -> ! {
     let path = db_path();
     println!("=======================================================");
-    println!("  WaitPlay Companion Watcher for Codex & ChatGPT");
+    println!("  Vibe Play Companion Watcher for Codex & ChatGPT");
     println!("  Codex Logs DB: {}", path.display());
     println!("  Bridge Target: http://127.0.0.1:{}", paths::bridge_port());
     println!("=======================================================");
@@ -220,10 +220,10 @@ pub fn run_watch() -> ! {
     let mut watcher = CodexWatcher::new(path.clone());
     if path.is_file() {
         if !watcher.connect(&mut env) {
-            eprintln!("[WaitPlay Watcher] Failed to open Codex DB initially: {}", path.display());
+            eprintln!("[Vibe Play Watcher] Failed to open Codex DB initially: {}", path.display());
         }
     } else {
-        eprintln!("[WaitPlay Watcher] Codex DB not found at {}. Waiting for it to appear...", path.display());
+        eprintln!("[Vibe Play Watcher] Codex DB not found at {}. Waiting for it to appear...", path.display());
     }
     run_loop(POLL_MS, &mut watcher, &mut env)
 }
@@ -240,7 +240,7 @@ pub fn run_test_turn() {
     println!(">>> ChatGPT starts reasoning and searching...");
     post("task_started", None);
 
-    println!(">>> Popping Native WaitPlay game window and forcing to top-most...");
+    println!(">>> Popping Native Vibe Play game window and forcing to top-most...");
     // No arguments: exactly what the old script did (the app opens its default window)
     common::spawn_app_raw(&[]);
     std::thread::sleep(Duration::from_millis(3000));

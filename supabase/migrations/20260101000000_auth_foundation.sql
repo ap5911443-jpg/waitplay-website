@@ -1,4 +1,4 @@
--- WaitPlay account data: profiles, plan/entitlements, devices, user preferences.
+-- Vibe Play account data: profiles, plan/entitlements, devices, user preferences.
 -- Every table has Row Level Security ENABLED and FORCED. `anon` gets nothing. Signed-in users can only ever see their own rows.
 -- Run it once (Supabase dashboard > SQL editor, or `supabase db push`). It is idempotent where practical.
 

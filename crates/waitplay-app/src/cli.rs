@@ -3,7 +3,7 @@
 //! * `--widget` / `--flow`        run the floating widget
 //! * `--toggle`                   flip the ON/OFF switch and exit
 //! * `--dock=left|right|bottom|free`   save the widget's dock side and exit
-//! * `--game` / `--open`          open the companion even when nothing is running (and force WaitPlay on)
+//! * `--game` / `--open`          open the companion even when nothing is running (and force Vibe Play on)
 //! * `--site=instagram|youtube|x` which site this companion hosts
 //! * `--session=<id>` `--terminal=<label>` `--promptTime=<ms>` `--parentPid=<pid>` `--parentHwnd=<hwnd>`  set by agent hooks
 //! * any other argument containing `omp`, `codex`/`chatgpt`, `opencode` or `cline` names the session (legacy launchers)

@@ -66,7 +66,7 @@ export const FullScreenGameModal: React.FC<FullScreenGameModalProps> = ({
             <div className={`p-1.5 rounded-xl ${activeTab === "games" ? "bg-forest text-canvas" : "bg-blue-600/20 text-blue-400"}`}>
               <Gamepad2 className="w-4 h-4" />
             </div>
-            <span className={`text-base font-serif font-normal hidden sm:inline ${activeTab === "games" ? "text-ink" : "text-zinc-100"}`}>WaitPlay</span>
+            <span className={`text-base font-serif font-normal hidden sm:inline ${activeTab === "games" ? "text-ink" : "text-zinc-100"}`}>Vibe Play</span>
           </div>
 
           <div className={`h-4 w-px ${activeTab === "games" ? "bg-ink/10" : "bg-zinc-800"}`} />

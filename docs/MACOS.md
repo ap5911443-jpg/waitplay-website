@@ -1,6 +1,6 @@
-# WaitPlay on macOS
+# Vibe Play on macOS
 
-WaitPlay for macOS is a menu-bar utility. It watches your AI coding agents; when one starts working it opens your chosen
+Vibe Play for macOS is a menu-bar utility. It watches your AI coding agents; when one starts working it opens your chosen
 entertainment site (Instagram, X or YouTube) in a compact floating window, and when the agent is done it hides or closes that
 window.
 
@@ -79,7 +79,7 @@ and `x86_64-apple-darwin`, signs when the `APPLE_*` secrets exist, and attaches 
 * Automatic updates are not implemented (the About pane says so).
 * The entertainment window cannot be frozen like WebView2: when parked it is hidden and, after ten idle minutes, the process quits
   (logins are kept in the system WebKit store).
-* Sites may limit embedded browsers. WaitPlay uses the standard WKWebView and does not alter the user agent or bypass any check.
+* Sites may limit embedded browsers. Vibe Play uses the standard WKWebView and does not alter the user agent or bypass any check.
 
 ## Verification status
 
@@ -105,9 +105,9 @@ has capacity (it is allowed to be cancelled); check the latest run for its resul
 
 **Not verified (needs a real Mac and a person):**
 
-- [ ] Sign in to Instagram / X / YouTube, then quit and reopen WaitPlay and confirm you are still signed in
+- [ ] Sign in to Instagram / X / YouTube, then quit and reopen Vibe Play and confirm you are still signed in
 - [ ] Retina display scaling, a second display, display plug/unplug, sleep/wake
-- [ ] Launch at login actually starting WaitPlay after a real login; no duplicate entry after moving the app
+- [ ] Launch at login actually starting Vibe Play after a real login; no duplicate entry after moving the app
 - [ ] Global shortcuts firing, and conflict messages in Settings > Shortcuts
 - [ ] OpenCode / Codex / OMP / Cline watchers with real sessions; Install Hooks button against a real Claude Code
 - [ ] Terminal.app / iTerm2 / VS Code: the window follows the terminal that ran the prompt

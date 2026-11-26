@@ -1,11 +1,11 @@
-//! "Quit companion (free RAM)" and "WaitPlay turned off": port of `CloseOtherGameWindows`.
+//! "Quit companion (free RAM)" and "Vibe Play turned off": port of `CloseOtherGameWindows`.
 //!
 //! Companions park themselves on every close request, so ending them takes an explicit ask: the quit file, read by each
 //! companion's poller. A clean exit lets the browser flush cookies (a sign-in made seconds ago survives) and takes the browser
 //! with it. Whatever is still running after 5 s is killed, and so is any browser left behind by a killed companion.
 //!
 //! Which processes are companions: other processes running THIS executable (same full image path, taken from one process
-//! snapshot, never the widget itself). An image name alone would also match another WaitPlay build living elsewhere.
+//! snapshot, never the widget itself). An image name alone would also match another Vibe Play build living elsewhere.
 
 use std::collections::{HashMap, HashSet};
 

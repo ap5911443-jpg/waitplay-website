@@ -162,7 +162,7 @@ impl Core {
     pub fn tick(&mut self, env: &mut dyn Env, agent_name_of: &dyn Fn(&str) -> String) -> Vec<Action> {
         let mut out = Vec::new();
         if !self.enabled {
-            // The user controls the window while WaitPlay is paused
+            // The user controls the window while Vibe Play is paused
             return out;
         }
         if !self.auto_close_armed {
@@ -771,7 +771,7 @@ mod tests {
         let t0 = Instant::now();
         c.tick(&mut env(TERM_A, t0), &name);
         assert!(!c.hidden_away);
-        // minimizing hands the focus to a WaitPlay window (the entertainment window or the widget): that must not read as "the user is here"
+        // minimizing hands the focus to a Vibe Play window (the entertainment window or the widget): that must not read as "the user is here"
         let minimized = |t: Instant| TestEnv { t, fg: ME, wp_windows: vec![ME], minimized: vec![TERM_A] };
         // a deliberate minimize hides at once: no grace period to wait out
         let acts = c.tick(&mut minimized(t0 + Duration::from_millis(1)), &name);

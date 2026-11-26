@@ -8,12 +8,12 @@ export const HowItWorks: React.FC = () => {
       eyebrow: "Zero Configuration Hook",
       title: "Hook naturally as your agent thinks",
       description:
-        "You don't need to learn a new workflow or change terminals. WaitPlay hooks directly into prompt submission and tool execution events across Claude Code, Codex, OMP, and Cursor.",
+        "You don't need to learn a new workflow or change terminals. Vibe Play hooks directly into prompt submission and tool execution events across Claude Code, Codex, OMP, and Cursor.",
       demoTitle: "Instant Lifecycle Hook",
       demoSubtitle: "Event Bridge • Port 3150 Loopback",
       demoSnippet: [
         { label: "Prompt", text: "$ omp 'Refactor Postgres queries with indexing'" },
-        { label: "Hook", text: "⚡ task_started → WaitPlay state machine activated" },
+        { label: "Hook", text: "⚡ task_started → Vibe Play state machine activated" },
         { label: "Latency", text: "⏱ Agent estimating 45s model thought latency" },
       ],
       tag: "Deterministic Hook",
@@ -38,7 +38,7 @@ export const HowItWorks: React.FC = () => {
       eyebrow: "Frictionless Hand-Off",
       title: "Auto-stops the exact second work finishes",
       description:
-        "No abrupt cutoffs or forgotten tasks. When your agent completes its turn or asks for confirmation, WaitPlay smoothly presents your execution stats and returns your cursor directly to the terminal.",
+        "No abrupt cutoffs or forgotten tasks. When your agent completes its turn or asks for confirmation, Vibe Play smoothly presents your execution stats and returns your cursor directly to the terminal.",
       demoTitle: "Turn Completion Summary",
       demoSubtitle: "Seamless Cursor Return",
       demoSnippet: [
