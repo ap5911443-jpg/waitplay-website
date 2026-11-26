@@ -190,7 +190,6 @@ struct App {
     arm_at: Option<Instant>,
     site_key: &'static str,
     close_on_finish: bool,
-    hide_at: Option<Instant>,
     deep_park_at: Option<Instant>,
     retrim_at: Option<Instant>,
     retrim_fast: u32,
@@ -227,10 +226,10 @@ impl App {
         for a in actions {
             match a {
                 Action::HideWhileAway => {
+                    self.hide_now(); // the window goes first: nothing below may delay the pixels
                     self.input.set_target(NO_WINDOW);
                     webview2::set_muted(&self.content, true); // a playing reel shouldn't keep talking from an invisible window
-                    let _ = self.content.evaluate_script(PAUSE_MEDIA_JS); // queued before the hide, so the page can't pause itself first
-                    self.hide_at = Some(Instant::now() + Duration::from_millis(15));
+                    let _ = self.content.evaluate_script(PAUSE_MEDIA_JS);
                     self.begin_deep_park();
                     self.set_poll_rate();
                 }
@@ -253,6 +252,19 @@ impl App {
         }
     }
 
+    /// Takes the window off the screen at once; the state file and the log line (disk writes) come after the hide.
+    fn hide_now(&mut self) {
+        if !self.core.hidden_away {
+            return;
+        }
+        self.window.set_visible(false);
+        platform::hide_window(self.hwnd());
+        self.visible = false;
+        self.visible_flag.store(false, Ordering::SeqCst);
+        waitplay_core::companion_state::write(self.site_key, false);
+        crate::wp_info!("companion hidden");
+    }
+
     fn set_poll_rate(&self) {
         let parked = self.core.is_parked();
         self.parked_flag.store(parked, Ordering::SeqCst);
@@ -261,7 +273,6 @@ impl App {
 
     /// Every route that shows the window ends here.
     fn show(&mut self, activate: bool) {
-        self.hide_at = None;
         if activate {
             self.window.set_visible(true);
             platform::show_window(self.hwnd(), true); // tao's set_visible is a no-op once its flag says visible
@@ -560,17 +571,6 @@ impl App {
             self.arm_at = None;
             self.core.auto_close_armed = true;
         }
-        if self.hide_at.map_or(false, |t| now >= t) {
-            self.hide_at = None;
-            if self.core.hidden_away {
-                waitplay_core::companion_state::write(self.site_key, false);
-                crate::wp_info!("companion hidden");
-                self.window.set_visible(false);
-                platform::hide_window(self.hwnd());
-                self.visible = false;
-                self.visible_flag.store(false, Ordering::SeqCst);
-            }
-        }
         if self.deep_park_at.map_or(false, |t| now >= t) {
             self.deep_park_at = None;
             self.start_suspend();
@@ -595,7 +595,7 @@ impl App {
     }
 
     fn next_deadline(&self) -> Option<Instant> {
-        [self.arm_at, self.hide_at, self.deep_park_at, self.retrim_at, self.idle_quit_at].into_iter().flatten().min()
+        [self.arm_at, self.deep_park_at, self.retrim_at, self.idle_quit_at].into_iter().flatten().min()
     }
 }
 
@@ -794,7 +794,6 @@ pub fn run(opts: Options, _guard: Guard) -> Result<(), String> {
         arm_at: Some(Instant::now() + Duration::from_secs(1)), // give the window a moment to appear before visibility rules apply
         site_key: site.key,
         close_on_finish: user_settings.on_finish == waitplay_core::settings::OnFinish::Close,
-        hide_at: None,
         deep_park_at: None,
         retrim_at: None,
         retrim_fast: 0,
