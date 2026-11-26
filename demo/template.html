@@ -124,7 +124,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .demo-note{margin:6px 14px 18px;font-size:10.5px;opacity:.5;text-align:center}
 
 /* widget */
-#widgetWin{position:absolute;z-index:700}
+#widgetWin{position:absolute;z-index:940}
 #glass{position:absolute;backdrop-filter:blur(26px) saturate(1.9);-webkit-backdrop-filter:blur(26px) saturate(1.9);background:rgba(255,255,255,.10)}
 .dark #glass{background:rgba(30,30,34,.18)}
 .win #glass{display:none}
@@ -243,8 +243,8 @@ $('#menuB').textContent = IS_WIN ? 'Open the tray menu' : 'Open the menu bar men
 $('#osLinks').innerHTML = IS_WIN ? '<a href="../mac/">See the Mac version</a>' : '<a href="../windows/">See the Windows version</a>';
 $('#pFine').innerHTML = IS_WIN ? 'Shortcuts: <b>Ctrl+Alt+W</b> toggles automation, <b>Ctrl+Alt+H</b> shows or hides the widget. The notch is the real page; Windows\u2019 own blur is approximated with CSS on the entertainment window\u2019s header. Instagram, YouTube and X content is placeholder in this demo; the app shows the real sites.'
   : 'Shortcuts like on the Mac: <b>Ctrl+Alt+W</b> toggles automation, <b>Ctrl+Alt+H</b> shows or hides the widget. The glass is approximated with CSS here; the app uses the system\u2019s own blur. Instagram, YouTube and X content is placeholder in this demo; the app shows the real sites.';
-const POS = IS_WIN ? [['top-center', 'Top center'], ['top-right', 'Top right'], ['bottom-right', 'Bottom right'], ['bottom-left', 'Bottom left']] : [['top-right', 'Top right'], ['bottom-right', 'Bottom right'], ['bottom-left', 'Bottom left']];
-const DEFAULT_POS = IS_WIN ? 'top-center' : 'bottom-right';
+const POS = [['top-center', IS_WIN ? 'Top center' : 'Notch'], ['top-right', 'Top right'], ['bottom-right', 'Bottom right'], ['bottom-left', 'Bottom left']];
+const DEFAULT_POS = 'top-center';
 $('#segPos').innerHTML = POS.map(([k, l]) => `<button data-p="${k}">${l}</button>`).join('');
 if (!IS_WIN) $('#fsBtn').remove();
 
@@ -290,7 +290,8 @@ function widgetState(){
   return { status: st, label: title, detail, agent: lead ? lead.name : '', terminal: lead ? lead.terminal : '', sessions: activeSessions(), statusText,
     justFinished: st === 'idle' && !!S.justFinished, since: sw.length ? Math.min(...sw) : null,
     platforms: SITES.map(([k, l]) => ({ key: k, label: l, on: S.settings.platforms[k] === true })), platform: S.settings.preferredPlatform, platformLabel: siteLabel(S.settings.preferredPlatform),
-    enabled: S.enabled, compact: S.settings.widgetCompact, showStatus: S.settings.widgetShowStatus, corner: S.settings.widgetPosition };
+    enabled: S.enabled, compact: S.settings.widgetCompact, showStatus: S.settings.widgetShowStatus, corner: S.settings.widgetPosition,
+    notch: !IS_WIN && S.settings.widgetPosition === 'top-center' ? { w: 190, h: 34 } : null };
 }
 function menuEntries(){
   const st = overall(), [title] = describe(st), m = [];
@@ -507,7 +508,7 @@ stage.append(widgetWin);
 let wSize = { w: 364, h: 96 };
 function placeWidget(){
   const pos = S.settings.widgetPosition;
-  const x = pos === 'bottom-left' ? 0 : pos === 'top-center' ? (1440 - wSize.w) / 2 : 1440 - wSize.w, y = pos.startsWith('top') ? WORK.y : WORK.b - wSize.h;
+  const x = pos === 'bottom-left' ? 0 : pos === 'top-center' ? (1440 - wSize.w) / 2 : 1440 - wSize.w, y = pos === 'top-center' && !IS_WIN ? 0 : pos.startsWith('top') ? WORK.y : WORK.b - wSize.h;
   Object.assign(widgetWin.style, { left: x + 'px', top: y + 'px', width: wSize.w + 'px', height: wSize.h + 'px' });
   widgetWin.style.display = S.settings.showWidget && S.running && !S.fullscreen ? 'block' : 'none';
 }

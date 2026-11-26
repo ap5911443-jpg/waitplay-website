@@ -27,8 +27,9 @@ macro_rules! string_enum {
 
 string_enum!(Appearance { System => "system", Light => "light", Dark => "dark" } default System);
 string_enum!(WidgetPosition { TopRight => "top-right", TopCenter => "top-center", BottomRight => "bottom-right", BottomLeft => "bottom-left" } default BottomRight);
-/// Where a fresh install puts the widget: the Windows notch hangs at the top centre of the screen, the macOS bar keeps its corner.
-pub const DEFAULT_WIDGET_POSITION: WidgetPosition = if cfg!(windows) { WidgetPosition::TopCenter } else { WidgetPosition::BottomRight };
+/// Where a fresh install puts the widget: at the top centre of the screen, which on a MacBook is the camera notch and on Windows the
+/// notch-style island. Existing installs keep the position they chose.
+pub const DEFAULT_WIDGET_POSITION: WidgetPosition = if cfg!(any(windows, target_os = "macos")) { WidgetPosition::TopCenter } else { WidgetPosition::BottomRight };
 string_enum!(OnFinish { Hide => "hide", Close => "close" } default Hide);
 
 #[derive(Serialize, Clone, PartialEq, Eq, Debug)]

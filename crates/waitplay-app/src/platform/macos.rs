@@ -190,6 +190,36 @@ pub fn screens() -> Vec<Screen> {
     list.iter().map(|s| Screen { frame: flip(lrect(s.frame())), work: flip(lrect(s.visibleFrame())), scale: s.backingScaleFactor() }).collect()
 }
 
+/// Size in points (width, height) of the camera notch of the display whose top-left corner is (`frame_x`, `frame_y`) in the
+/// coordinates of [`screens`]; `None` for a display without one (external monitors, Macs before 2021, macOS before 12). The notch
+/// is the strip the display reserves at the top (`safeAreaInsets.top`) and its width is what the two usable top areas leave free.
+pub fn notch_size(frame_x: f64, frame_y: f64) -> Option<(f64, f64)> {
+    use objc2::runtime::Bool;
+    let mtm = MainThreadMarker::new()?;
+    let list = NSScreen::screens(mtm).to_vec();
+    let primary_height = list.first()?.frame().size.height;
+    for s in list.iter() {
+        let f = s.frame();
+        let (x, y) = (f.origin.x, primary_height - (f.origin.y + f.size.height));
+        if (x - frame_x).abs() > 1.0 || (y - frame_y).abs() > 1.0 {
+            continue;
+        }
+        // SAFETY: a plain selector query on a live NSScreen; the three notch accessors below exist from macOS 12
+        let known: Bool = unsafe { objc2::msg_send![&**s, respondsToSelector: objc2::sel!(auxiliaryTopLeftArea)] };
+        if !known.as_bool() {
+            return None;
+        }
+        let top = s.safeAreaInsets().top;
+        if top <= 0.0 {
+            return None;
+        }
+        let (left, right) = (s.auxiliaryTopLeftArea(), s.auxiliaryTopRightArea());
+        let width = f.size.width - left.size.width - right.size.width;
+        return if width > 20.0 { Some((width, top)) } else { None };
+    }
+    None
+}
+
 /// Primary display's usable area in physical pixels (the contract's unit).
 pub fn work_area() -> Rect {
     match screens().first() {

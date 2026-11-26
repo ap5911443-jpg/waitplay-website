@@ -25,7 +25,7 @@ use tao::platform::macos::{ActivationPolicy, EventLoopExtMacOS, EventLoopWindowT
 use tao::window::{Theme, Window, WindowBuilder, WindowId};
 use tray_icon::menu::{CheckMenuItem, ContextMenu, Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
 use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
-use waitplay_core::settings::{Appearance, Settings};
+use waitplay_core::settings::{Appearance, Settings, WidgetPosition};
 use waitplay_core::{companion_state, now_ms, paths, process, signals, state, BridgeClient};
 use wry::{WebView, WebViewBuilder};
 
@@ -558,6 +558,9 @@ impl App {
             "compact": self.settings.widget_compact,
             "showStatus": self.settings.widget_show_status,
             "corner": self.settings.widget_position.as_str(),
+            // the camera notch of the display the widget is on (points), so the page can start exactly as big as the hardware
+            "notch": self.widget_screen().and_then(|s| platform::notch_size(s.frame.x, s.frame.y)).map(|(w, h)| json!({ "w": w, "h": h })),
+            "since": view.working_since,
         })
     }
 
@@ -761,7 +764,15 @@ impl App {
         let Some(w) = self.widget.as_mut() else { return };
         let Some((cw, ch)) = w.size else { return }; // wait for the page's first size report
         w.window.set_inner_size(LogicalSize::new(cw, ch));
-        let (x, y) = placement::corner_origin(screen.work, (cw, ch), pos, 0.0);
+        // Top centre is the notch: flush with the very top of a display that has one (the window sits over the menu bar, above it),
+        // a floating island just under the menu bar on a display without. Every other position is a corner as before.
+        let notch = platform::notch_size(screen.frame.x, screen.frame.y);
+        let (x, y) = if pos == WidgetPosition::TopCenter {
+            (screen.frame.x + (screen.frame.w - cw) / 2.0, if notch.is_some() { screen.frame.y } else { screen.work.y })
+        } else {
+            placement::corner_origin(screen.work, (cw, ch), pos, 0.0)
+        };
+        platform::set_window_level(w.window.ns_window(), if pos == WidgetPosition::TopCenter { 25 } else { 8 }); // 25 = status window level, above the menu bar
         w.window.set_outer_position(LogicalPosition::new(x, y));
         if !w.shown {
             w.window.set_visible(true);
