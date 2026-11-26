@@ -1204,6 +1204,13 @@ impl App {
                 }
             }
             "insights" => self.send_insights(&str_of("range"), v.get("tz").and_then(Value::as_i64).unwrap_or(0)),
+            "recent" => {
+                let summary = insights::recent(&insights::load(), 10);
+                if let Some(w) = self.settings_win.as_ref() {
+                    let _ = w.webview.evaluate_script(&format!("window.wpRecent&&wpRecent({})", summary));
+                }
+            }
+            "hideEntertainment" => self.hide_entertainment(),
             "previewSound" => sound::preview(&self.settings),
             "chooseSound" => self.choose_sound(),
             "removeSound" => {

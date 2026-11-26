@@ -387,6 +387,21 @@ pub fn summarize(records: &[Record], now: i64, range: Range, tz_min: i32) -> Val
     })
 }
 
+/// The most recent finished sessions (newest first) for the Sessions pane.
+pub fn recent(records: &[Record], limit: usize) -> Value {
+    let mut rows: Vec<&Record> = records.iter().filter(|r| matches!(r, Record::Session { .. })).collect();
+    rows.sort_by_key(|r| std::cmp::Reverse(record_end(r)));
+    let list: Vec<Value> = rows
+        .into_iter()
+        .take(limit)
+        .filter_map(|r| match r {
+            Record::Session { agent, start, end, work, wait, outcome, .. } => Some(json!({ "agent": agent, "start": start, "end": end, "workMs": work, "waitMs": wait, "outcome": outcome })),
+            _ => None,
+        })
+        .collect();
+    json!({ "sessions": list })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -538,5 +553,15 @@ mod tests {
         assert_eq!(back.len(), 2);
         assert_eq!(back[0], rec);
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn recent_lists_the_newest_finished_sessions_first() {
+        let s = |end: i64, o| Record::Session { id: "x".into(), agent: "codex".into(), start: end - 10, end, work: 5, wait: 1, ent: 0, outcome: o };
+        let recs = vec![s(100, Outcome::Completed), s(300, Outcome::Failed), s(200, Outcome::Completed), Record::Entertainment { site: "x".into(), start: 1, end: 999, auto: false }];
+        let r = recent(&recs, 2);
+        let ends: Vec<i64> = r["sessions"].as_array().unwrap().iter().map(|x| x["end"].as_i64().unwrap()).collect();
+        assert_eq!(ends, [300, 200]);
+        assert_eq!(r["sessions"][0]["outcome"], "failed");
     }
 }

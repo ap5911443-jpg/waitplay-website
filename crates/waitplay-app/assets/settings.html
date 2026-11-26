@@ -377,12 +377,13 @@ function paneEntertainment() {
   const finHelp = h("div", { class: "rdesc" });
   reg(() => { fin.update(); setText(finHelp, settings().onFinish === "close" ? "Close frees memory." : "Hide keeps the page ready."); });
   const open = h("button", { class: "btn primary", type: "button", onclick: () => send({ t: "openEntertainment" }) }, "Open now");
+  const hide = h("button", { class: "btn", type: "button", onclick: () => send({ t: "hideEntertainment" }) }, "Hide");
   return h("div", { class: "stack" },
     section("Platforms", group(rows), h("div", { class: "note" }, "You stay signed in between launches.")),
     group(
       h("div", { class: "row" }, h("div", { class: "grow rtitle" }, "Preferred platform"), sel),
       h("div", { class: "row" }, h("div", { class: "grow" }, h("div", { class: "rtitle" }, "When the agent finishes"), finHelp), fin.el),
-      h("div", { class: "row" }, h("div", { class: "grow rtitle" }, "Open entertainment now"), open)));
+      h("div", { class: "row" }, h("div", { class: "grow rtitle" }, "Open or hide entertainment now"), hide, open)));
 }
 
 function agentRow() {
@@ -462,6 +463,8 @@ function fmtDur(ms) {
   const hh = Math.floor(m / 60);
   return hh + "h " + (m % 60) + "m";
 }
+let RECENT = null;
+window.wpRecent = d => { RECENT = d.sessions; render(); };
 function paneSessions() {
   const list = h("div", { class: "group" });
   const head = h("div", { class: "gtitle" });
@@ -478,7 +481,19 @@ function paneSessions() {
         h("span", { class: "rdesc" }, ACT_TEXT[r.act] || ""), h("span", { class: "rtitle" }, t)));
     }
   });
-  return h("div", { class: "stack" }, banners(), h("div", {}, head, list),
+  const recentBox = h("div", { class: "group" });
+  reg(() => {
+    recentBox.textContent = "";
+    const rows = RECENT || [];
+    if (!rows.length) { recentBox.append(h("div", { class: "empty" }, "Finished sessions are listed here.")); return; }
+    for (const r of rows) {
+      const when = new Date(r.end).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+      recentBox.append(h("div", { class: "srow2" }, h("span", { class: "sdot " + (r.outcome === "failed" ? "failed" : "") }),
+        h("div", { class: "grow" }, h("div", { class: "rtitle" }, agentName(r.agent)), h("div", { class: "rdesc" }, when)),
+        h("span", { class: "rdesc" }, r.outcome === "completed" ? "Completed" : r.outcome === "failed" ? "Error" : "Stopped"), h("span", { class: "rtitle" }, fmtDur(r.end - r.start))));
+    }
+  });
+  return h("div", { class: "stack" }, banners(), h("div", {}, head, list), section("Recent", recentBox),
     h("div", { class: "rdesc" }, "Each session is tracked on its own. One finishing never ends another, and the shared entertainment window stays open until the last one is done."));
 }
 
@@ -777,6 +792,7 @@ function selectPane(id, focus) {
   }
   document.getElementById("scroll").scrollTop = 0;
   if (id === "insights") requestInsights();
+  if (id === "sessions") send({ t: "recent" });
   if (focus) tabEls[id].focus();
 }
 
