@@ -319,4 +319,25 @@ mod tests {
         assert!(sm.get_session("idle-0").is_none(), "the oldest idle session was evicted");
         sm.clear_all();
     }
+
+    #[tokio::test(start_paused = true)]
+    async fn heartbeats_keep_a_working_session_alive_but_never_wake_a_finished_or_waiting_one() {
+        let sm = SessionManager::default();
+        sm.process_event(&ev(AgentType::ClaudeCode, "long", AgentEvent::TaskStarted));
+        let m = sm.get_or_create_session("long", None);
+        // silent for 25 s by the clock, but a heartbeat arrived just now
+        m.handle_event(AgentEvent::TaskRunning, Some(now_ms() - 25_000), None, None);
+        m.handle_event(AgentEvent::Heartbeat, Some(now_ms()), None, None);
+        assert_eq!(sm.get_all_sessions()[0].status, AgentStatus::Working, "a heartbeat is life");
+
+        m.handle_event(AgentEvent::WaitingForInput, None, None, None);
+        m.handle_event(AgentEvent::Heartbeat, None, None, None);
+        assert_eq!(m.get_status(), AgentStatus::WaitingForInput, "a heartbeat does not resume a session that waits for the user");
+
+        m.handle_event(AgentEvent::TaskCompleted, None, None, None);
+        m.handle_event(AgentEvent::Heartbeat, None, None, None);
+        assert_eq!(m.get_status(), AgentStatus::Completed, "nor reopen a finished one");
+        assert_eq!(m.get_session().total_tasks_completed, 1);
+        sm.clear_all();
+    }
 }

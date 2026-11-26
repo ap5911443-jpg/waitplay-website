@@ -131,7 +131,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   transition:opacity .25s ease,height .35s var(--ease)}
 #pill.hastoast #toast{opacity:1;pointer-events:auto;transition:opacity .3s ease .12s,height .35s var(--ease)}
 #toast .td{width:8px;height:8px;border-radius:50%;flex:none;background:var(--accent)}
-#toast[data-kind=started] .td{background:var(--amber)} #toast[data-kind=error] .td{background:var(--red)}
+#toast[data-kind=started] .td,#toast[data-kind=waiting] .td{background:var(--amber)} #toast[data-kind=error] .td{background:var(--red)}
 #toast .tx{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
 #toast b{font-size:12.5px;font-weight:600;line-height:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #toast .tx span{font-size:11.5px;line-height:14px;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -413,7 +413,7 @@ body.demo #wrap{margin:0 auto;width:auto}
       l1.append(d, n, st, t);
       const det = document.createElement('div'); det.className = 'sdet';
       const when = r.since ? 'Started ' + new Date(r.since).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-      det.textContent = [r.terminal ? 'Terminal: ' + r.terminal : '', when].filter(Boolean).join(' \u00b7 ') || 'No more detail from this agent.';
+      det.textContent = [r.prompt || '', r.terminal ? 'Terminal: ' + r.terminal : '', when].filter(Boolean).join(' \u00b7 ') || 'No more detail from this agent.';
       row.append(l1, det);
       row.addEventListener('click', e => { e.stopPropagation(); selId = selId === r.id ? '' : r.id; renderSessions(); requestAnimationFrame(layout); });
       box.appendChild(row);

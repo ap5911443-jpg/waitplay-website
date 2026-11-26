@@ -32,7 +32,17 @@ pub trait Watcher {
     fn is_idle(&self) -> bool {
         false
     }
+    /// While a turn is open, [`run_loop`] posts a `heartbeat` event every [`HEARTBEAT_EVERY`] so the bridge's silence watchdog does
+    /// not call a long answer or a long tool "finished". Watchers that send their own (OMP) leave this off.
+    fn wants_heartbeat(&self) -> bool {
+        false
+    }
 }
+
+/// How often an open turn says "still going", and for how long at most (a turn whose end marker never comes must not look busy
+/// forever: after this the bridge's watchdog closes it).
+pub const HEARTBEAT_EVERY: Duration = Duration::from_secs(5);
+pub const HEARTBEAT_MAX: Duration = Duration::from_secs(30 * 60);
 
 /// Production environment. Events go through one worker thread so a slow bridge never stalls polling and events keep their
 /// order, like the fire-and-forget requests of the Node watchers (but strictly ordered).
@@ -103,8 +113,20 @@ pub fn run_loop(poll_ms: u64, watcher: &mut dyn Watcher, env: &mut dyn Env) -> !
     let busy_interval = Duration::from_millis(poll_ms);
     let idle_interval = Duration::from_millis(poll_ms.max(IDLE_POLL_MS));
     let mut next_poll = Instant::now();
+    let mut busy_since: Option<Instant> = None;
+    let mut next_beat = Instant::now() + HEARTBEAT_EVERY;
     loop {
         let now = Instant::now();
+        if watcher.wants_heartbeat() && !watcher.is_idle() {
+            let since = *busy_since.get_or_insert(now);
+            if now >= next_beat && now.duration_since(since) < HEARTBEAT_MAX {
+                env.post("heartbeat", None, None);
+                next_beat = now + HEARTBEAT_EVERY;
+            }
+        } else {
+            busy_since = None;
+            next_beat = now + HEARTBEAT_EVERY;
+        }
         if now >= next_poll {
             watcher.poll(env);
             let interval = if watcher.is_idle() { idle_interval } else { busy_interval };

@@ -200,6 +200,10 @@ impl Watcher for CodexWatcher {
         !self.state.active && self.state.completion.is_none()
     }
 
+    fn wants_heartbeat(&self) -> bool {
+        true
+    }
+
     fn fire(&mut self, env: &mut dyn Env) {
         self.state.fire(env);
     }

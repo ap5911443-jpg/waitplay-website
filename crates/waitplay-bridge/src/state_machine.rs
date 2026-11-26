@@ -210,6 +210,13 @@ impl AgentStateMachine {
         agent: Option<AgentType>,
         out: &mut Vec<Note>,
     ) {
+        if event == AgentEvent::Heartbeat {
+            // only a session that is working needs it; it must never wake a finished or waiting one
+            if matches!(g.session.status, AgentStatus::Working | AgentStatus::GameActive) {
+                g.session.last_event_at = timestamp;
+            }
+            return;
+        }
         g.session.last_event_at = timestamp;
         if let Some(a) = agent {
             g.session.agent = a;
@@ -316,6 +323,8 @@ impl AgentStateMachine {
                     out.push(Note::Stop(g.session.clone(), StopReason::Failed));
                 }
             }
+
+            AgentEvent::Heartbeat => {}
 
             AgentEvent::SessionEnded => {
                 let had_active_game = g.session.status == AgentStatus::GameActive;

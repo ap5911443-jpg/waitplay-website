@@ -65,10 +65,12 @@ pub enum AgentEvent {
     TaskCompleted,
     TaskFailed,
     SessionEnded,
+    /// "Still going": keeps a working session alive while the agent is silent (a long tool, a long answer). Changes no status.
+    Heartbeat,
 }
 
 impl AgentEvent {
-    pub const ALL: [AgentEvent; 7] = [
+    pub const ALL: [AgentEvent; 8] = [
         AgentEvent::SessionStarted,
         AgentEvent::TaskStarted,
         AgentEvent::TaskRunning,
@@ -76,6 +78,7 @@ impl AgentEvent {
         AgentEvent::TaskCompleted,
         AgentEvent::TaskFailed,
         AgentEvent::SessionEnded,
+        AgentEvent::Heartbeat,
     ];
 
     pub fn as_str(self) -> &'static str {
@@ -87,6 +90,7 @@ impl AgentEvent {
             AgentEvent::TaskCompleted => "task_completed",
             AgentEvent::TaskFailed => "task_failed",
             AgentEvent::SessionEnded => "session_ended",
+            AgentEvent::Heartbeat => "heartbeat",
         }
     }
 

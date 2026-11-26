@@ -51,9 +51,10 @@ pub fn default_watchers() -> Vec<String> {
 // ── Claude Code hooks ────────────────────────────────────────────────────────────────────────────────────────────────────
 
 /// (hook event, `waitplay-hook claude-code` argument, tool matcher)
-const CLAUDE_EVENTS: [(&str, &str, Option<&str>); 5] = [
+const CLAUDE_EVENTS: [(&str, &str, Option<&str>); 6] = [
     ("UserPromptSubmit", "start", None),
     ("PreToolUse", "tool", Some("*")),
+    ("PostToolUse", "tool_done", Some("*")),
     ("Stop", "stop", None),
     ("Notification", "notify", None),
     ("SessionEnd", "end", None),

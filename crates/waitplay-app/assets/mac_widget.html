@@ -111,7 +111,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #toast{position:absolute;left:0;right:0;top:var(--bh,36px);height:var(--th,0px);padding:0 16px;display:flex;align-items:center;gap:10px;opacity:0;pointer-events:none;overflow:hidden;transition:opacity .25s ease,height .35s var(--ease,ease)}
 #shell.hastoast #toast{opacity:1;pointer-events:auto;transition:opacity .3s ease .12s,height .35s var(--ease,ease)}
 #toast .td{width:8px;height:8px;border-radius:50%;flex:none;background:var(--accent)}
-#toast[data-kind=started] .td{background:#ffb02e} #toast[data-kind=done] .td,#toast[data-kind=alldone] .td{background:#2fd28b} #toast[data-kind=alldone] .td{background:#8dffb8} #toast[data-kind=error] .td{background:#ff6159}
+#toast[data-kind=started] .td,#toast[data-kind=waiting] .td{background:#ffb02e} #toast[data-kind=done] .td,#toast[data-kind=alldone] .td{background:#2fd28b} #toast[data-kind=alldone] .td{background:#8dffb8} #toast[data-kind=error] .td{background:#ff6159}
 #toast .tx{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
 #toast b{font-size:12.5px;font-weight:600;line-height:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #toast .tx span{font-size:11.5px;line-height:14px;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -434,7 +434,7 @@ body.demo #wrap{margin:0 auto}
       l1.append(d, n, st, t);
       const det = document.createElement('div'); det.className = 'sdet';
       const when = r.since ? 'Started ' + new Date(r.since).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-      det.textContent = [r.terminal ? 'Terminal: ' + r.terminal : '', when].filter(Boolean).join(' · ') || 'No more detail from this agent.';
+      det.textContent = [r.prompt || '', r.terminal ? 'Terminal: ' + r.terminal : '', when].filter(Boolean).join(' · ') || 'No more detail from this agent.';
       row.append(l1, det);
       row.addEventListener('click', e => { e.stopPropagation(); selId = selId === r.id ? '' : r.id; renderSessions(); requestAnimationFrame(layout); });
       box.appendChild(row);

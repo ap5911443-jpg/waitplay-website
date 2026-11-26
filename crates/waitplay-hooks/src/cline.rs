@@ -303,6 +303,10 @@ impl Watcher for ClineWatcher {
         !self.state.is_working && self.state.finish_at.is_none()
     }
 
+    fn wants_heartbeat(&self) -> bool {
+        true
+    }
+
     fn fire(&mut self, env: &mut dyn Env) {
         self.state.fire(env);
     }

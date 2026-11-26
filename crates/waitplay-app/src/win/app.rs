@@ -609,7 +609,7 @@ impl App {
     /// Feeds the new session list to the notification tracker (and so to the sounds) and to the insights recorder.
     fn observe_sessions(&mut self) {
         let now = now_ms();
-        let sessions: Vec<island::Sess> = self.rt.view.sessions.iter().map(|r| island::Sess { id: r.id.clone(), name: r.name.clone(), act: r.act }).collect();
+        let sessions: Vec<island::Sess> = self.rt.view.sessions.iter().map(|r| island::Sess { id: r.id.clone(), name: r.name.clone(), act: r.act, prompt: r.prompt.clone() }).collect();
         let key = self.rt.entertainment.clone().unwrap_or_else(|| self.settings.preferred_platform.clone());
         let label = menu_model::site_label(&key);
         let ctx = island::Context { platform: label, automation: self.rt.enabled, entertainment_open: self.rt.entertainment.is_some() };
@@ -714,7 +714,7 @@ impl App {
                     Act::Done => "done",
                     Act::Failed => "failed",
                 };
-                json!({ "id": r.id, "name": r.name, "act": act, "since": r.since, "durMs": r.duration_ms, "terminal": r.terminal })
+                json!({ "id": r.id, "name": r.name, "act": act, "since": r.since, "durMs": r.duration_ms, "terminal": r.terminal, "prompt": r.prompt })
             })
             .collect()
     }

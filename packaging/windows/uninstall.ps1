@@ -11,6 +11,7 @@ $value = (Get-ItemProperty $run -Name WaitPlay -ErrorAction SilentlyContinue).Wa
 if ($value -and $value.IndexOf($dest, [StringComparison]::OrdinalIgnoreCase) -ge 0) { Remove-ItemProperty $run -Name WaitPlay -ErrorAction SilentlyContinue }
 
 Remove-Item (Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\WaitPlay.lnk') -ErrorAction SilentlyContinue
+Remove-Item (Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Vibe Play.lnk') -ErrorAction SilentlyContinue
 Remove-Item 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\WaitPlay' -Recurse -ErrorAction SilentlyContinue
 if ($RemoveData) {
     Remove-Item (Join-Path $env:LOCALAPPDATA 'WaitPlay') -Recurse -Force -ErrorAction SilentlyContinue

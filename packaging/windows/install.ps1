@@ -15,10 +15,13 @@ foreach ($f in 'waitplay.exe', 'waitplay-bridge.exe', 'waitplay-hook.exe', 'unin
 }
 
 $programs = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
-$shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut((Join-Path $programs 'WaitPlay.lnk'))
+# earlier versions named the shortcut WaitPlay; the Start menu and search show the product name
+Remove-Item (Join-Path $programs 'WaitPlay.lnk') -ErrorAction SilentlyContinue
+$shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut((Join-Path $programs 'Vibe Play.lnk'))
 $shortcut.TargetPath = Join-Path $dest 'waitplay.exe'
 $shortcut.WorkingDirectory = $dest
 $shortcut.Description = 'Vibe Play'
+$shortcut.IconLocation = (Join-Path $dest 'waitplay.exe') + ',0'
 $shortcut.Save()
 
 $key = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\WaitPlay'

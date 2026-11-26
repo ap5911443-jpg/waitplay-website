@@ -485,7 +485,7 @@ function paneSessions() {
     for (const r of rows) {
       const t = r.since && (r.act === "working" || r.act === "waiting") ? fmtDur(Date.now() - r.since) : (r.durMs ? fmtDur(r.durMs) : "");
       list.append(h("div", { class: "srow2" }, h("span", { class: "sdot " + r.act }),
-        h("div", { class: "grow" }, h("div", { class: "rtitle" }, r.name), h("div", { class: "rdesc" }, r.terminal ? "Terminal: " + r.terminal : "")),
+        h("div", { class: "grow" }, h("div", { class: "rtitle" }, r.name), h("div", { class: "rdesc" }, r.prompt || (r.terminal ? "Terminal: " + r.terminal : ""))),
         h("span", { class: "rdesc" }, ACT_TEXT[r.act] || ""), h("span", { class: "rtitle" }, t)));
     }
   });

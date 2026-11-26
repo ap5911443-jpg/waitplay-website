@@ -1,7 +1,7 @@
 //! `waitplay-hook`: every agent integration of Vibe Play in one binary.
 //!
 //! Hooks (short-lived, read their input, talk to the bridge once, always exit 0, never block the agent):
-//!   claude-code <start|tool|stop|notify|end>      Claude Code hook (JSON on stdin)
+//!   claude-code <start|tool|tool_done|stop|notify|end|beat>      Claude Code hook (JSON on stdin)
 //!   cursor|antigravity <start|tool|stop> [a] [b]  IDE hooks
 //!   codex-notify [codex args...]                  Codex `notify` turn-end hook
 //! Watchers (long-running):
@@ -26,7 +26,7 @@ mod simulate;
 const USAGE: &str = "Usage: waitplay-hook <command> [args]
 
 Hooks:
-  claude-code <start|tool|stop|notify|end>
+  claude-code <start|tool|tool_done|stop|notify|end|beat>
   cursor <start|tool|stop> [model|tool] [task]
   antigravity <start|tool|stop> [model|tool] [task]
   codex-notify [args...]

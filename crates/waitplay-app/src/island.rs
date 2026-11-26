@@ -31,6 +31,8 @@ pub struct Sess {
     pub id: String,
     pub name: String,
     pub act: Act,
+    /// What a waiting agent asked, for the notification (empty when it did not say).
+    pub prompt: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -79,6 +81,8 @@ pub struct Tracker {
     started: Vec<String>,
     done: Vec<String>,
     failed: Vec<String>,
+    /// Sessions that just started waiting for the user: (name, what they asked).
+    waiting: Vec<(String, String)>,
     group_since: Option<i64>,
     opened_pending: bool,
     queue: VecDeque<Toast>,
@@ -116,6 +120,9 @@ impl Tracker {
                 (true, Act::Failed) => self.failed.push(s.name.clone()),
                 _ => {}
             }
+            if before == Some(Act::Working) && s.act == Act::Waiting {
+                self.waiting.push((s.name.clone(), s.prompt.clone()));
+            }
         }
         // an active session that vanished from the list counts as over, but without a "finished" claim
         self.prev = sessions.iter().map(|s| (s.id.clone(), s.act)).collect();
@@ -126,7 +133,7 @@ impl Tracker {
         self.ent_was_open = ctx.entertainment_open;
         self.peak = self.peak.max(active_now);
 
-        let has_events = !self.started.is_empty() || !self.done.is_empty() || !self.failed.is_empty() || self.opened_pending;
+        let has_events = !self.started.is_empty() || !self.done.is_empty() || !self.failed.is_empty() || !self.waiting.is_empty() || self.opened_pending;
         if has_events && self.group_since.is_none() {
             self.group_since = Some(now);
         }
@@ -145,6 +152,7 @@ impl Tracker {
 
     fn flush(&mut self, active_now: usize, sessions: &[Sess], ctx: &Context, notifications: bool) -> Cues {
         let (started, done, failed) = (std::mem::take(&mut self.started), std::mem::take(&mut self.done), std::mem::take(&mut self.failed));
+        let waiting = std::mem::take(&mut self.waiting);
         let opened = std::mem::take(&mut self.opened_pending);
         let mut cues = Cues { started: !started.is_empty(), error: !failed.is_empty(), opened, ..Cues::default() };
         let mut toasts: Vec<(&'static str, String, String)> = Vec::new();
@@ -157,6 +165,15 @@ impl Tracker {
             } else {
                 toasts.push(("started", format!("{} AI coding sessions are now active.", active_now.max(started.len())), list(&started)));
             }
+        }
+        if !waiting.is_empty() {
+            let (title, body) = if waiting.len() == 1 {
+                let ask: String = waiting[0].1.chars().take(90).collect();
+                (format!("{} needs you.", waiting[0].0), if ask.is_empty() { "Check its terminal.".to_string() } else { ask })
+            } else {
+                (format!("{} sessions need you.", waiting.len()), list(&waiting.iter().map(|w| w.0.clone()).collect::<Vec<_>>()))
+            };
+            toasts.push(("waiting", title, body));
         }
         if !failed.is_empty() {
             let (title, body) = if failed.len() == 1 {
@@ -266,7 +283,7 @@ mod tests {
     use super::*;
 
     fn s(id: &str, name: &str, act: Act) -> Sess {
-        Sess { id: id.into(), name: name.into(), act }
+        Sess { id: id.into(), name: name.into(), act, prompt: String::new() }
     }
     fn ctx(open: bool) -> Context<'static> {
         Context { platform: "Instagram", automation: true, entertainment_open: open }
@@ -440,5 +457,18 @@ mod tests {
         assert_eq!(l(true, Some("YouTube"), 0, false, true).state, "closing");
         assert_eq!(l(true, Some("YouTube"), 0, false, false).state, "open");
         assert_eq!(l(true, None, 0, false, false).state, "waiting");
+    }
+
+    #[test]
+    fn a_session_that_starts_waiting_says_what_it_asked() {
+        let mut tr = Tracker::new();
+        tr.observe(0, &[], &ctx(false), 5, true);
+        settle(&mut tr, 1_000, &[s("a", "Claude Code", Act::Working)], true);
+        tr.dismiss_toast();
+        let ask = Sess { id: "a".into(), name: "Claude Code".into(), act: Act::Waiting, prompt: "Claude needs your permission to use Bash".into() };
+        let cues = settle(&mut tr, 9_000, &[ask], true);
+        assert!(!cues.any(), "waiting is a notification, not a sound");
+        let t = tr.toast().unwrap();
+        assert_eq!((t.kind, t.title.as_str(), t.body.as_str()), ("waiting", "Claude Code needs you.", "Claude needs your permission to use Bash"));
     }
 }

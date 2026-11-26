@@ -65,6 +65,8 @@ pub struct SessionRow {
     /// Finished: how long the last task took.
     pub duration_ms: Option<i64>,
     pub terminal: String,
+    /// What a waiting agent asked ("Claude needs your permission to use Bash"), shortened; empty otherwise.
+    pub prompt: String,
     /// Time of the last event, for ordering only.
     pub at: i64,
 }
@@ -135,6 +137,7 @@ pub fn parse_sessions(json: &str, now_ms: i64) -> Option<SessionsView> {
                 since: if act.active() { num("currentTaskStartedAt").filter(|t| *t <= now_ms) } else { None },
                 duration_ms: if act.active() { None } else { num("lastTaskDurationMs") },
                 terminal: s.get("terminal").and_then(Value::as_str).unwrap_or("").to_string(),
+                prompt: if act == Act::Waiting { s.get("waitingForInputPrompt").and_then(Value::as_str).unwrap_or("").chars().take(120).collect() } else { String::new() },
                 at,
             });
         }
